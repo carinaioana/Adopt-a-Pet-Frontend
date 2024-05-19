@@ -1,0 +1,90 @@
+header {
+    position: relative;
+    padding: 1rem 2rem;
+    height: fit-content;
+    display: flex;
+    max-width: 100vw;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    flex-grow: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+}
+
+.header-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dark-mode-switch {
+    display: flex;
+    align-items: center;
+}
+
+.MuiDrawer-paper {
+    display: flex;
+    max-height: 100vh;
+    width: fit-content;
+    padding: 1rem;
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list {
+    width: 10rem;
+}
+
+.listItem:focus,
+.listItem:hover {
+    border-radius: 4px;
+    outline: none;
+}
+
+.listItem.selected {
+    border-radius: 4px;
+}
+
+.list-item-text {
+    white-space: nowrap; /* Prevents the text from wrapping */
+    overflow: hidden; /* Hides overflow */
+    text-overflow: ellipsis; /* Adds an ellipsis for overflowed text */
+}
+
+.MuiIconButton-root:focus {
+    outline: none;
+}
+
+.login-logout-icon {
+    display: flex;
+    justify-content: center;
+}
+
+@media (max-width: 30rem) {
+    header {
+        justify-items: center;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    header h1 {
+        margin-bottom: 1rem;
+    }
+
+    footer {
+        position: relative;
+        bottom: auto;
+        height: auto;
+        padding: 1rem;
+    }
+
+    #root {
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+    }
+}

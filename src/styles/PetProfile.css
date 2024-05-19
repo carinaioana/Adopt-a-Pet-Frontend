@@ -1,0 +1,111 @@
+.pet-details-container {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    width: 80vw;
+    max-width: 100vw;
+    min-height: 100vh;
+    box-shadow: 4px 10px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    position: relative;
+}
+
+.pet-details-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 5rem;
+    align-items: center;
+
+}
+
+.pet-photo {
+    width: 12rem;
+    height: 12rem;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 5px solid #eee; /* Add border to photo */
+}
+
+.pet-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pet-info.typography-h5 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+.pet-info {
+    font-size: 1.25rem;
+    margin: 0.5rem 0;
+}
+
+.pet-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pet-edit {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.pet-section {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    /*background-color: #ffffff; !* White background for sections *!*/
+    box-shadow: 2px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+
+.edit-icon {
+    cursor: pointer;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    color: #007bff; /* Use a blue color for the edit icon for visibility */
+}
+
+@media screen and (max-width: 768px) {
+    .pet-details-container {
+        display: flex;
+        flex-direction: column;
+        padding: 1.25rem;
+        min-width: 90vw;
+        min-height: 100vh;
+        box-shadow: 4px 10px 5px rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        border: 1px solid #ddd; /* Slightly lighter border */
+        position: relative;
+    }
+
+    .pet-details-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .pet-photo {
+        margin-bottom: 1.5rem;
+    }
+
+    .pet-info h1 {
+        font-size: 2rem;
+    }
+
+    .pet-info p {
+        font-size: 1rem;
+    }
+
+    .pet-edit {
+        flex-direction: column;
+        align-items: center;
+    }
+}

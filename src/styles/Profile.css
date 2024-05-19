@@ -1,0 +1,146 @@
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+    width: 80vw;
+    max-width: 100vw;
+    box-shadow: 4px 10rem 1rem rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    position: relative;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.875rem;
+    align-items: center;
+}
+
+.profile-photo {
+    width: 9.375rem;
+    height: 9.375rem;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 1.875rem;
+    flex-shrink: 0;
+}
+
+.profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-info {
+    font-size: 2.25rem;
+    margin: 0;
+}
+
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.875rem;
+}
+
+.profile-edit {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-section {
+    padding: 1.25rem;
+    border-radius: 0.3125rem;
+    background-color: #FFF9E6;
+}
+
+.profile-section h2 {
+    font-size: 1.5rem;
+    margin-top: 0;
+}
+
+.profile-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.profile-section li {
+    margin-bottom: 0.3125rem;
+}
+
+.edit-icon {
+    margin-left: 5rem;
+    align-self: flex-start;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+}
+
+.pet-profile {
+    display: flex;
+    flex-direction: column;
+}
+
+@media screen and (max-width: 48rem) {
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile-photo {
+        margin-right: 0;
+        margin-bottom: 1.25rem;
+    }
+
+    .profile-info h1 {
+        font-size: 1.75rem;
+    }
+
+    .profile-info p {
+        font-size: 1rem;
+    }
+
+    .profile-details {
+        grid-template-columns: 1fr;
+    }
+}
+
+.save-changes-button-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem; /* Adjust the margin as needed */
+}
+
+.save-changes-button {
+    flex-grow: 0;
+}
+
+@media screen and (max-width: 30rem) {
+    .profile-container {
+        width: 80vw;
+        padding: 0.625rem;
+    }
+
+    .profile-photo {
+        width: 7.5rem;
+        height: 7.5rem;
+    }
+
+    .profile-info h1 {
+        font-size: 1.5rem;
+    }
+
+    .profile-info p {
+        font-size: 0.875rem;
+    }
+
+    .profile-section h2 {
+        font-size: 1.25rem;
+    }
+
+    .edit-icon {
+        align-self: center;
+    }
+}

@@ -1,0 +1,34 @@
+#root {
+    margin: 0 auto;
+    padding: 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    min-width: 90vw;
+}
+
+.title {
+    flex-grow: 0;
+
+
+}
+
+
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden; /* Hide overflow along the x-axis */
+    overflow-y: auto; /* Allow scrolling for overflow along the y-axis */
+}
+
+footer {
+    position: relative;
+    margin-top: auto;
+}
+
+
+
