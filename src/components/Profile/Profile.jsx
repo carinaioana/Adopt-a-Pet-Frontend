@@ -1,78 +1,70 @@
 import { useEffect, useState } from "react";
-import { Box, Button, CircularProgress, IconButton } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
 import { Card, CardContent } from "@mui/material";
 import "../../styles/Profile.css";
 import ProfileHeader from "./ProfileHeader.jsx";
-import EditIcon from "@mui/icons-material/Edit";
 import ProfileDetails from "./ProfileDetails.jsx";
+import axios from "axios";
 
 const Profile = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [user, setUser] = useState(null);
-  /*id: 1,
-                      username: "johndoe",
-                      email: "johndoe@example.com",
-                      password: "password123",
-                      fullName: "John Doe",
-                      userLocation: { selectedLocation: "New York, USA" },
-                      age: 30,
-                      description: "Hi, I am a software developer.",
-                      announcements: [
-                        { title: "Found dog in Iasi" },
-                        { title: "2 kittens looking for parents" },
-                      ],
-                      petProfiles: [
-                        {
-                          name: "Buddy",
-                          species: "Dog",
-                          description: "Loyal and friendly companion",
-                          race: "Golden Retriever",
-                          age: 5,
-                          traits: ["Friendly", "Energetic", "Loyal"],
-                        },
-                        { name: "Whiskers", species: "Cat" },
-                      ],
-                      profilePhoto: "https://via.placeholder.com/150",
-                    });*/
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+  };
   useEffect(() => {
-    const fetchUserDetails = async () => {
-      // Simulated delay to mimic fetch operation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+  const fetchUserDetails = async () => {
+    try {
+      const token = localStorage.getItem('authToken'); // Retrieve the token from localStorage
+      const userDetailsResponse = await axios.get('https://localhost:7141/api/v1/Authentication/currentuserinfo', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const claims = userDetailsResponse.data.claims;
 
-      // Mock data - replace this with actual data structure from your backend
-      const mockUserDetails = {
-        id: 1,
-        username: "jane.doe",
-        fullName: "Jane Doe",
+      const name = claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+      const userId = claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+
+      // Fetch pet profiles
+      const petProfilesResponse = await axios.get('https://localhost:7141/api/v1/Animals/my-animals', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const petProfiles = petProfilesResponse.data.animals.map(pet => ({
+        animalId: pet.animalId,
+        animalName: pet.animalName,
+        animalType: pet.animalType,
+        animalBreed: pet.animalBreed,
+        animalSex: pet.animalSex,
+        animalAge: pet.animalAge,
+        animalDescription: pet.animalDescription,
+        personalityTraits: pet.personalityTraits,
+        imageUrl: pet.imageUrl,
+      }));
+
+      const userDetails = {
+        id: userId,
+        username: "carinasrb",
+        profilePhoto: "https://via.placeholder.com/150",
+        fullName: name,
         email: "jane.doe@example.com",
-        password: "password123",
         age: 30,
         userLocation: { selectedLocation: "" },
         description: "Loves hiking and outdoor activities.",
-        announcements: [
-          { title: "Found dog in Iasi" },
-          { title: "2 kittens looking for parents" },
-        ],
-        petProfiles: [
-          {
-            name: "Buddy",
-            type: "Dog",
-            breed: "Labrador",
-            sex: "Male",
-            age: 5,
-            description: "Loyal and friendly companion",
-            traits: ["Friendly", "Energetic", "Loyal"],
-            image: "https://via.placeholder.com/150",
-          },
-        ],
-        profilePhoto: "https://via.placeholder.com/150",
+        petProfiles: petProfiles,
       };
 
-      setUser(mockUserDetails); // Assuming setUser is the state setter function for user details
-    };
+      setUser(userDetails);
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  };
 
-    fetchUserDetails();
-  }, []);
+  fetchUserDetails();
+}, []);
 
   if (!user) {
     return <CircularProgress />;
@@ -92,7 +84,7 @@ const Profile = () => {
       <CardContent variant="oulined" className="profile-header">
         <ProfileHeader
           user={user}
-          setUser={setUser}
+          onUserUpdate={handleUserUpdate}
           isEditMode={isEditMode}
           setIsEditMode={setIsEditMode}
         />
@@ -100,7 +92,7 @@ const Profile = () => {
       <CardContent variant="outlined" className="profile-details">
         <ProfileDetails
           user={user}
-          setUser={setUser}
+          onUserUpdate={handleUserUpdate}
           isEditMode={isEditMode}
           setIsEditMode={setIsEditMode}
         />

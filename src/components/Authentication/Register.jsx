@@ -3,13 +3,15 @@ import { Button, TextField, Box } from "@mui/material";
 import { useAuth } from "./context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import PasswordTooltip from "./PasswordTooltip.jsx";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { register } = useAuth();
   const navigate = useNavigate();
   const [passwordValidations, setPasswordValidations] = useState({
     minLength: false,
@@ -43,7 +45,7 @@ const Register = () => {
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ email, username, password }),
+              body: JSON.stringify({ email, username, password, name }),
               secure: false,
             },
           );
@@ -52,23 +54,36 @@ const Register = () => {
             const data = await response.json(); // Assuming the response includes user info
             localStorage.setItem("authToken", data.token); // Save the token
             localStorage.setItem("userInfo", JSON.stringify(data.user)); // Save user info
-            navigate("/", { replace: true });
-            alert("Registration successful!");
+              toast.success('Registration successful!');
+              setTimeout(() => {
+                  navigate("/", { replace: true });
+              }, 1000);
           } else {
-            alert("Registration failed. Please try again.");
+              toast.error('Registration failed. Please try again.');
           }
         } catch (error) {
           console.error("Registration error:", error);
-          alert("An error occurred during registration. Please try again.");
+          toast.error("An error occurred during registration. Please try again.");
         }
       } else {
-        alert(
+        toast.error(
           "Please ensure all fields are correctly filled and all password criteria are met.",
         );
       }
     };
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+        <ToastContainer />
+        <TextField
+            margin="normal"
+            required
+            fullWidth
+            label="Name"
+            name="name"
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+        />
       <TextField
         margin="normal"
         required

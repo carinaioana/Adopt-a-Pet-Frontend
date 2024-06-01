@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -26,6 +26,7 @@ import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useAuth } from "./Authentication/context/AuthContext.jsx";
+import axios from "axios";
 
 const StyledListItem = styled(ListItem)(({ isactive }) => ({
   "&:focus, &:hover": {
@@ -78,10 +79,12 @@ const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
 
 const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { login, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [isPetsAccordionExpanded, setIsPetsAccordionExpanded] = useState(false);
-  const [selectedPet, setSelectedPet] = useState(null);
+  const [, setSelectedPet] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [pets, setPets] = useState([]);
 
   // Modify the handleClick function to toggle the accordion's expanded state
   const handleAccordionClick = (event) => {
@@ -89,59 +92,53 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
     event.stopPropagation();
   };
 
-  const pets = {
-    pet1: {
-      name: "Buddy",
-      species: "Dog",
-      age: 2,
-      vaccines: [
-        { name: "Rabies", date: "2021-05-12", nextDue: "2023-05-12" },
-        { name: "Distemper", date: "2021-06-01", nextDue: "2023-06-01" },
-      ],
-      dewormingStatus: [
-        { date: "2022-01-15", nextDue: "2022-07-15" },
-        { date: "2022-07-15", nextDue: "2023-01-15" },
-      ],
-      observations:
-        "Buddy is energetic and loves to play fetch. No known allergies.",
-    },
-    pet2: {
-      name: "Max",
-      species: "Dog",
-      age: 1,
-      vaccines: [
-        { name: "Rabies", date: "2022-03-20", nextDue: "2024-03-20" },
-        { name: "Parvovirus", date: "2022-04-10", nextDue: "2024-04-10" },
-      ],
-      dewormingStatus: [
-        { date: "2022-02-10", nextDue: "2022-08-10" },
-        { date: "2022-08-10", nextDue: "2023-02-10" },
-      ],
-      observations:
-        "Max is a bit shy around new people but warms up quickly. Sensitive to chicken-based foods.",
-    },
-    pet3: {
-      name: "Bella",
-      species: "Cat",
-      age: 3,
-      vaccines: [
-        {
-          name: "Feline Leukemia Virus",
-          date: "2021-04-25",
-          nextDue: "2023-04-25",
-        },
-        { name: "Rabies", date: "2021-05-10", nextDue: "2023-05-10" },
-      ],
-      dewormingStatus: [
-        { date: "2022-03-05", nextDue: "2022-09-05" },
-        { date: "2022-09-05", nextDue: "2023-03-05" },
-      ],
-      observations:
-        "Bella loves to climb and explore high places. Ensure windows are secure.",
-    },
-  };
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await axios.get(
+          "https://localhost:7141/api/v1/Authentication/currentuserinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const data = response.data;
+        const name =
+          data.claims[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+          ];
+        setUserName(name); // Update the state with the fetched user's name
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
 
-  // Existing code...
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    const fetchPetProfiles = async () => {
+      try {
+        const token = localStorage.getItem("authToken"); // Retrieve the token from localStorage
+        const response = await axios.get(
+          "https://localhost:7141/api/v1/Animals/my-animals",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Use the token for authorization
+            },
+          },
+        );
+        setPets(response.data.animals); // Assuming the response structure you provided
+        // For demonstration, you might want to set this data to state or handle it as needed
+      } catch (error) {
+        console.error("Error fetching pet profiles:", error);
+      }
+    };
+
+    fetchPetProfiles();
+  }, []);
 
   const handlePetClick = (petId) => {
     console.log(`Pet clicked: ${pets[petId].name}`);
@@ -171,10 +168,7 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
     }
   };
 
-  let navItems = [
-    { url: "/", label: "Home" },
-
-  ];
+  let navItems = [{ url: "/", label: "Home" }];
 
   if (isLoggedIn) {
     navItems = [
@@ -198,7 +192,7 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
         <MenuIcon />
       </IconButton>
       <Drawer
-        anchor="right"
+        anchor="left"
         open={isOpen}
         onClose={handleDrawerToggle}
         aria-label="Navigation Drawer"
@@ -212,10 +206,10 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
           {isLoggedIn && (
             <List className="user-info">
               <ListItem component={NavLink} button to="/profile">
-                <Avatar sx={{marginRight: "1rem"}}>
+                <Avatar sx={{ marginRight: "1rem" }}>
                   <img src="../../public/avatar.jpg" alt="profile-photo" />
                 </Avatar>
-                <ListItemText primary="User" className="list-item-text" />
+                <ListItemText primary={userName} className="list-item-text" />
               </ListItem>
             </List>
           )}
@@ -245,7 +239,8 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
                             key={petId}
                             onClick={() => handlePetClick(petId)}
                           >
-                            {pets[petId].name}
+                            {pets[petId].animalName}{" "}
+                            {/* Corrected from {pets[petId].name} */}
                           </Button>
                         ))}
                       </StyledAccordionDetails>

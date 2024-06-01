@@ -27,8 +27,10 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-google-places-autocomplete": "^4.0.1",
+    "react-parallax": "^3.5.1",
     "react-password-checklist": "^1.5.1",
     "react-router-dom": "^6.22.3",
+    "react-toastify": "^10.0.5",
     "redux": "^5.0.1",
     "redux-toolkit": "^1.1.2"
   },

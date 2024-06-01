@@ -1,62 +1,127 @@
 import { useEffect, useState } from "react";
 import {
-    Box,
-    Typography,
-    List,
-    MenuItem,
-    Menu,
-    Checkbox,
-    Button,
+  Box,
+  Typography,
+  List,
+  Button,
+  CircularProgress,
+  TextField,
 } from "@mui/material";
-import { FilterList} from "@mui/icons-material";
+import SortIcon from "@mui/icons-material/Sort";
 import IconButton from "@mui/material/IconButton";
 import AnnouncementModal from "./AnnouncementModal.jsx";
 import axios from "axios";
 import Announcement from "./Announcement.jsx";
 
-
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [currentUser, setCurrentUser] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
-  const [selectedFilters, setSelectedFilters] = useState(["All"]);
+  const [isSortedAsc, setIsSortedAsc] = useState(true);
+  const [, setSearchQuery] = useState("");
+  const handleSearchChange = (event) => {
+    const value = event.target.value;
+    setSearchQuery(value);
+    filterAnnouncements(value);
+  };
+
+  const filterAnnouncements = (query) => {
+    if (!query) {
+      fetchAnnouncements(); // Fetch all announcements if the search query is empty
+    } else {
+      const filteredAnnouncements = announcements.filter(
+        (announcement) =>
+          announcement.announcementTitle
+            .toLowerCase()
+            .includes(query.toLowerCase()) ||
+          announcement.announcementDescription
+            .toLowerCase()
+            .includes(query.toLowerCase()),
+      );
+      setAnnouncements(filteredAnnouncements);
+    }
+  };
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem("authToken");
       try {
         const response = await axios.get(
-          "https://localhost:7141/api/v1/Announc",
+          "https://localhost:7141/api/v1/Authentication/currentuserinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
-        setAnnouncements(response.data.announcements);
+        setCurrentUser(response.data); // Set the current user's information
       } catch (error) {
-        console.error("Error fetching announcements:", error);
+        console.error("Error fetching current user info:", error);
       }
     };
-
-    fetchAnnouncements();
+    console.log(currentUser);
+    fetchCurrentUser();
   }, []);
 
-const handleCreateAnnouncement = async (newAnnouncement) => {
-    // Add the current date and time to the newAnnouncement object
+  useEffect(() => {
+    fetchAnnouncements(); // Call this function on component mount
+  }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const announcementsResponse = await axios.get(
+        "https://localhost:7141/api/v1/Announc",
+      );
+      const token = localStorage.getItem("authToken"); // Retrieve the token from local storage
+
+      const announcementsWithUser = await Promise.all(
+        announcementsResponse.data.announcements.map(async (announcement) => {
+          const userResponse = await axios.get(
+            `https://localhost:7141/api/v1/Authentication/userinfo/${announcement.createdBy}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`, // Include the token in the request
+              },
+            },
+          );
+          return { ...announcement, userName: userResponse.data.name };
+        }),
+      );
+
+      setAnnouncements(announcementsWithUser);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    }
+  };
+
+  const handleCreateAnnouncement = async (newAnnouncement) => {
     const announcementWithDate = {
-        ...newAnnouncement,
-        announcementDate: new Date().toISOString(), // Set the current date and time in ISO format
+      ...newAnnouncement,
+      announcementDate: new Date().toISOString(),
     };
+    const token = localStorage.getItem("authToken");
 
     try {
       const response = await axios.post(
         "https://localhost:7141/api/v1/Announc",
-        announcementWithDate, // Use the updated object with the date
+        announcementWithDate,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
+
       if (response.data.success) {
-        console.log("Announcement created:", response.data.announcement);
-        // Update the announcements list with the new announcement
-        setAnnouncements(prevAnnouncements => [...prevAnnouncements, response.data.announcement]);
+        console.log("Announcement created successfully");
+        fetchAnnouncements();
       } else {
-        console.error("Failed to create announcement:", response.data.validationsErrors);
+        console.error(
+          "Failed to create announcement:",
+          response.data.validationsErrors,
+        );
       }
     } catch (error) {
       console.error("Error creating announcement:", error);
@@ -64,39 +129,64 @@ const handleCreateAnnouncement = async (newAnnouncement) => {
     handleCloseModal();
   };
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+    const handleUpdateAnnouncement = async (announcementId, updatedAnnouncement) => {
+        const token = localStorage.getItem("authToken");
+        try {
+            await axios.put(`https://localhost:7141/api/v1/Announc/${announcementId}`, updatedAnnouncement, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+            console.log("Announcement updated successfully");
+            console.log(updatedAnnouncement);
+        } catch (error) {
+            console.error("Error updating the announcement:", error);
+        }
+    };
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Function to handle filter selection
-  const handleFilterSelect = (filter) => {
-    if (filter === "All") {
-      // If "All" is selected, either select all filters or clear the selection
-      setSelectedFilters(
-        selectedFilters.includes("All")
-          ? []
-          : ["All", "Adoption Events", "Foster Homes"],
+  const handleDeleteAnnouncement = async (announcementId) => {
+    try {
+      const response = await fetch(
+        `https://localhost:7141/api/v1/Announc/${announcementId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
       );
-    } else {
-      // For other filters, add or remove from the selection
-      if (selectedFilters.includes(filter)) {
-        setSelectedFilters(selectedFilters.filter((f) => f !== filter));
-      } else {
-        setSelectedFilters([
-          ...selectedFilters.filter((f) => f !== "All"),
-          filter,
-        ]);
+
+      if (!response.ok) {
+        throw new Error("Failed to delete the announcement");
       }
+
+      setAnnouncements(
+        announcements.filter(
+          (announcement) => announcement.announcementId !== announcementId,
+        ),
+      );
+      console.log("Announcement deleted successfully");
+    } catch (error) {
+      console.error("Error deleting announcement:", error);
     }
   };
-  console.log(announcements);
+  const handleSort = () => {
+    setIsSortedAsc(!isSortedAsc); // Toggle the sort order
+    setAnnouncements((currentAnnouncements) =>
+      [...currentAnnouncements].sort((a, b) => {
+        const dateA = new Date(a.announcementDate);
+        const dateB = new Date(b.announcementDate);
+        return isSortedAsc ? dateB - dateA : dateA - dateB; // Sort based on the current sort order
+      }),
+    );
+  };
+
+  if (!announcements.length) {
+    return <CircularProgress>Loading Announcements</CircularProgress>;
+  }
 
   return (
-
     <Box
       sx={{
         display: "flex",
@@ -104,11 +194,15 @@ const handleCreateAnnouncement = async (newAnnouncement) => {
         minHeight: "75vh",
         width: "90vw",
         overflow: "auto",
-        padding: "1rem",
-        borderRadius: "8px",
-        border: "1px solid #ccc",
-        boxShadow: "4px 8px 5px rgba(0, 0, 0, 0.3)",
+        padding: "2rem",
+        borderRadius: "12px",
+        border: "1px solid #e0e0e0",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
         position: "relative",
+        "@media (max-width: 600px)": {
+          width: "100vw",
+          padding: "1rem",
+        },
       }}
     >
       <Typography
@@ -117,83 +211,61 @@ const handleCreateAnnouncement = async (newAnnouncement) => {
         sx={{
           position: "sticky",
           top: 0,
-          backgroundColor: "inherit", // Ensure the background matches the container
-          zIndex: 1, // Make sure the title sticks on top of the scrolled content
-          paddingTop: "16px", // Add padding to create space between the title and the top of the box
+          backgroundColor: "inherit",
+          zIndex: 1,
+          paddingTop: "16px",
+          fontWeight: "bold",
+          fontSize: "1.75rem", // Slightly larger for emphasis
         }}
       >
         Announcements
       </Typography>
-        <Button
-            variant="contained"
-            onClick={handleOpenModal}
-            sx={{ mt: 2, mb: 2, alignSelf: "flex-end" }}
-        >
-            Create Announcement
-        </Button>
-        <AnnouncementModal
-            open={modalOpen}
-            onClose={handleCloseModal}
-            onCreate={handleCreateAnnouncement}
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <IconButton onClick={handleSort} sx={{ mr: 1, color: "primary.main" }}>
+          <SortIcon />
+        </IconButton>
+        <TextField
+          size="small"
+          label="Search Announcements"
+          variant="outlined"
+          sx={{ mr: 1, width: "250px" }} // Ensure adequate width for ease of typing
+          onChange={handleSearchChange}
         />
-      <IconButton
-        aria-label="filter list"
-        onClick={handleClick}
-        sx={{
-          position: "absolute",
-          right: 16,
-          top: 16,
-          zIndex: 2,
-        }}
-      >
-        <FilterList />
-      </IconButton>
-      <Menu
-        id="filter-menu"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        MenuListProps={{
-          "aria-labelledby": "filter-button",
-        }}
-      >
-        <MenuItem onClick={() => handleFilterSelect("All")}>
-          <Checkbox checked={selectedFilters.includes("All")} />
-          All
-        </MenuItem>
-        <MenuItem onClick={() => handleFilterSelect("Adoption Events")}>
-          <Checkbox checked={selectedFilters.includes("Adoption Events")} />
-          Adoption Events
-        </MenuItem>
-        <MenuItem onClick={() => handleFilterSelect("Foster Homes")}>
-          <Checkbox checked={selectedFilters.includes("Foster Homes")} />
-          Foster Homes
-        </MenuItem>
-      </Menu>
-      <List sx={{ overflow: "auto" }}>
-        {Array.isArray(announcements) ? (
+      </Box>
+
+      <List sx={{ overflow: "auto", mt: 2 }}>
+        {Array.isArray(announcements) && announcements.length > 0 ? (
           announcements.map((announcement, index) => (
             <Announcement
               key={index}
               title={announcement.announcementTitle}
               content={announcement.announcementDescription}
-              date={new Date(announcement.announcementDate).toLocaleString(
-                "en-UK",
-                {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                },
-              )}
+              date={new Date(announcement.announcementDate).toISOString()}
+              username={
+                currentUser.claims[
+                  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+                ]
+              }
+              currentUserId={currentUser.userName}
+              announcementUserId={announcement.createdBy}
+              announcementId={announcement.announcementId}
+              onUpdate={handleUpdateAnnouncement}
+              onDelete={() =>
+                handleDeleteAnnouncement(announcement.announcementId)
+              }
             />
           ))
         ) : (
-          <Typography variant="body1">No announcements found.</Typography>
+          <Typography variant="body1" sx={{ textAlign: "center", mt: 4 }}>
+            No announcements found.
+          </Typography>
         )}
       </List>
-
+      <AnnouncementModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        onCreate={handleCreateAnnouncement}
+      />
     </Box>
   );
 };

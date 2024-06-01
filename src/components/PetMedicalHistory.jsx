@@ -107,25 +107,6 @@ const PetDetailsPage = () => {
     setEditModalOpen(true);
   };
 
-  /*useEffect(() => {
-              // Fetch or retrieve the pet's details based on petId
-              // Placeholder for fetch operation
-              const fetchPetDetails = async () => {
-                // Simulate fetching pet details by ID
-                // Replace this with your actual fetch call
-                const petDetails = await fetch(`/api/pets/${petId}`).then((res) =>
-                  res.json(),
-                );
-                if (petDetails) {
-                  setSelectedPet(petDetails);
-                } else {
-                  navigate("/pets"); // Navigate away if pet not found
-                }
-              };
-        
-              fetchPetDetails();
-            }, [petId, navigate]);*/
-
   useEffect(() => {
     // Mock fetch operation
     const fetchPetDetails = async () => {
