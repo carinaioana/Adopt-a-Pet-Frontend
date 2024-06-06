@@ -1,70 +1,64 @@
 import { useEffect, useState } from "react";
-import { Button, CircularProgress } from "@mui/material";
-import { Card, CardContent } from "@mui/material";
+import { Button, Card, CardContent, CircularProgress } from "@mui/material";
 import "../../styles/Profile.css";
+import "../../styles/App.css";
 import ProfileHeader from "./ProfileHeader.jsx";
 import ProfileDetails from "./ProfileDetails.jsx";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const Profile = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [user, setUser] = useState(null);
+  const { userDetails } = useAuth();
   const handleUserUpdate = (updatedUser) => {
     setUser(updatedUser);
   };
   useEffect(() => {
-  const fetchUserDetails = async () => {
-    try {
-      const token = localStorage.getItem('authToken'); // Retrieve the token from localStorage
-      const userDetailsResponse = await axios.get('https://localhost:7141/api/v1/Authentication/currentuserinfo', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const claims = userDetailsResponse.data.claims;
+    const fetchUserDetails = async () => {
+      try {
+        const token = localStorage.getItem("authToken"); // Retrieve the token from localStorage
+        // Fetch pet profiles
+        const petProfilesResponse = await axios.get(
+          "https://localhost:7141/api/v1/Animals/my-animals",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const petProfiles = petProfilesResponse.data.animals.map((pet) => ({
+          id: pet.animalId,
+          name: pet.animalName,
+          type: pet.animalType,
+          breed: pet.animalBreed,
+          sex: pet.animalSex,
+          age: pet.animalAge,
+          description: pet.animalDescription,
+          traits: pet.personalityTraits,
+          image: pet.imageUrl,
+        }));
 
-      const name = claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
-      const userId = claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+        const userInfo = {
+          id: userDetails.id,
+          username: userDetails.username,
+          profilePhoto: "src/assets/carina.jpg",
+          fullName: userDetails.name,
+          email: userDetails.email,
+          age: 21,
+          userLocation: { selectedLocation: "" },
+          description: "Loves hiking and outdoor activities.",
+          petProfiles: petProfiles,
+        };
 
+        setUser(userInfo);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
 
-      // Fetch pet profiles
-      const petProfilesResponse = await axios.get('https://localhost:7141/api/v1/Animals/my-animals', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const petProfiles = petProfilesResponse.data.animals.map(pet => ({
-        animalId: pet.animalId,
-        animalName: pet.animalName,
-        animalType: pet.animalType,
-        animalBreed: pet.animalBreed,
-        animalSex: pet.animalSex,
-        animalAge: pet.animalAge,
-        animalDescription: pet.animalDescription,
-        personalityTraits: pet.personalityTraits,
-        imageUrl: pet.imageUrl,
-      }));
-
-      const userDetails = {
-        id: userId,
-        username: "carinasrb",
-        profilePhoto: "https://via.placeholder.com/150",
-        fullName: name,
-        email: "jane.doe@example.com",
-        age: 30,
-        userLocation: { selectedLocation: "" },
-        description: "Loves hiking and outdoor activities.",
-        petProfiles: petProfiles,
-      };
-
-      setUser(userDetails);
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-    }
-  };
-
-  fetchUserDetails();
-}, []);
+    fetchUserDetails();
+  }, []);
 
   if (!user) {
     return <CircularProgress />;
@@ -73,15 +67,16 @@ const Profile = () => {
   return (
     <Card
       sx={{
-        margin: "2rem",
+        marginTop: "5rem",
         padding: "1.25rem",
         display: "flex",
         flexDirection: "column",
         backgroundColor: "background.default",
+        position: "relative",
       }}
-      className="profile-container"
+      className="common-container"
     >
-      <CardContent variant="oulined" className="profile-header">
+      <CardContent variant="oulined" className="common-header">
         <ProfileHeader
           user={user}
           onUserUpdate={handleUserUpdate}
@@ -89,7 +84,7 @@ const Profile = () => {
           setIsEditMode={setIsEditMode}
         />
       </CardContent>
-      <CardContent variant="outlined" className="profile-details">
+      <CardContent variant="outlined" className="common-details">
         <ProfileDetails
           user={user}
           onUserUpdate={handleUserUpdate}

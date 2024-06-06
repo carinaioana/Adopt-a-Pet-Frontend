@@ -25,7 +25,7 @@ import IconButton from "@mui/material/IconButton";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { useAuth } from "./Authentication/context/AuthContext.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
 import axios from "axios";
 
 const StyledListItem = styled(ListItem)(({ isactive }) => ({
@@ -42,7 +42,7 @@ const StyledListItem = styled(ListItem)(({ isactive }) => ({
   borderRadius: isactive ? "4px" : "inherit",
 }));
 
-const StyledAccordion = styled(Accordion)(({ theme, isexpanded }) => ({
+const StyledAccordion = styled(Accordion)(({ isexpanded }) => ({
   boxShadow: "none",
   "&:before": {
     display: "none",
@@ -52,71 +52,41 @@ const StyledAccordion = styled(Accordion)(({ theme, isexpanded }) => ({
   },
   backgroundColor: isexpanded ? "rgba(0, 0, 0, 0.08)" : "inherit",
 }));
-
-const StyledAccordionSummary = styled(AccordionSummary)(
-  ({ theme, isexpanded }) => ({
-    borderRadius: "4px",
-    "&.Mui-expanded": {
-      minHeight: 48,
-    },
-    "&:focus, &:hover": {
-      backgroundColor: isexpanded ? "rgba(0, 0, 0, 0.08)" : "inherit",
-    },
-    "&.Mui-selected": {
-      backgroundColor: isexpanded ? "rgba(0, 0, 0, 0.08)" : "inherit",
-    },
-    "& .MuiAccordionSummary-content.Mui-expanded": {
-      margin: "12px 0",
-    },
+const StyledAccordionSummary = styled(AccordionSummary)(({ isexpanded }) => ({
+  borderRadius: "4px",
+  "&.Mui-expanded": {
+    minHeight: 48,
+  },
+  "&:focus, &:hover": {
     backgroundColor: isexpanded ? "rgba(0, 0, 0, 0.08)" : "inherit",
-  }),
-);
+  },
+  "&.Mui-selected": {
+    backgroundColor: isexpanded ? "rgba(0, 0, 0, 0.08)" : "inherit",
+  },
+  "& .MuiAccordionSummary-content.Mui-expanded": {
+    margin: "12px 0",
+  },
+  backgroundColor: isexpanded ? "rgba(0, 0, 0, 0.08)" : "inherit",
+}));
 
 const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
   padding: theme.spacing(2),
   borderTop: "1px solid rgba(0, 0, 0, .125)",
 }));
 
-const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
+const NavDrawer = ({ onThemeToggle, isDarkMode }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout, authToken, userDetails } = useAuth();
   const navigate = useNavigate();
   const [isPetsAccordionExpanded, setIsPetsAccordionExpanded] = useState(false);
   const [, setSelectedPet] = useState(null);
-  const [userName, setUserName] = useState("");
   const [pets, setPets] = useState([]);
-
+  const isLoggedIn = !!authToken;
   // Modify the handleClick function to toggle the accordion's expanded state
   const handleAccordionClick = (event) => {
     setIsPetsAccordionExpanded(!isPetsAccordionExpanded);
     event.stopPropagation();
   };
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        const response = await axios.get(
-          "https://localhost:7141/api/v1/Authentication/currentuserinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        const data = response.data;
-        const name =
-          data.claims[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
-          ];
-        setUserName(name); // Update the state with the fetched user's name
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   useEffect(() => {
     const fetchPetProfiles = async () => {
@@ -130,8 +100,7 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
             },
           },
         );
-        setPets(response.data.animals); // Assuming the response structure you provided
-        // For demonstration, you might want to set this data to state or handle it as needed
+        setPets(response.data.animals);
       } catch (error) {
         console.error("Error fetching pet profiles:", error);
       }
@@ -141,9 +110,16 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
   }, []);
 
   const handlePetClick = (petId) => {
-    console.log(`Pet clicked: ${pets[petId].name}`);
-    setSelectedPet(pets[petId]); // Set the selected pet's details
-    navigate(`/pet-details/${petId}`);
+    // Assuming petId is an actual ID and pets is an array of pet objects
+    const selectedPet = pets.find((pet) => pet.animalId === petId);
+    if (selectedPet) {
+      setSelectedPet(selectedPet);
+      navigate(`/pet-details/${selectedPet.animalId}`, {
+        state: { selectedPet: selectedPet },
+      });
+    } else {
+      console.error("Pet not found");
+    }
   };
 
   const toggleTheme = () => {
@@ -159,6 +135,7 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
     }
     setIsOpen(!isOpen);
   };
+  console.log(userDetails);
 
   const handleLoginLogoutClick = () => {
     if (isLoggedIn) {
@@ -192,13 +169,13 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
         <MenuIcon />
       </IconButton>
       <Drawer
-        anchor="left"
+        anchor="right"
         open={isOpen}
         onClose={handleDrawerToggle}
         aria-label="Navigation Drawer"
         className="nav-drawer"
       >
-        <div
+        <Box
           role="presentation"
           onClick={handleDrawerToggle}
           onKeyDown={handleDrawerToggle}
@@ -209,7 +186,10 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
                 <Avatar sx={{ marginRight: "1rem" }}>
                   <img src="../../public/avatar.jpg" alt="profile-photo" />
                 </Avatar>
-                <ListItemText primary={userName} className="list-item-text" />
+                <ListItemText
+                  primary={userDetails.name}
+                  className="list-item-text"
+                />
               </ListItem>
             </List>
           )}
@@ -234,13 +214,12 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
                         <Typography>My Pets</Typography>
                       </StyledAccordionSummary>
                       <StyledAccordionDetails>
-                        {Object.keys(pets).map((petId) => (
+                        {pets.map((pet) => (
                           <Button
-                            key={petId}
-                            onClick={() => handlePetClick(petId)}
+                            key={pet.animalId}
+                            onClick={() => handlePetClick(pet.animalId)}
                           >
-                            {pets[petId].animalName}{" "}
-                            {/* Corrected from {pets[petId].name} */}
+                            {pet.animalName}
                           </Button>
                         ))}
                       </StyledAccordionDetails>
@@ -251,7 +230,7 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
                 return (
                   <StyledListItem
                     button
-                    key={url} // This already has a unique key, which is good
+                    key={url}
                     component={NavLink}
                     to={url}
                     isactive={window.location.pathname === url ? 1 : 0}
@@ -267,7 +246,7 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
               {isLoggedIn ? <LogoutIcon /> : <LoginIcon />}
             </IconButton>
           </div>
-        </div>
+        </Box>
         <div className="dark-mode-switch">
           <LightModeIcon />
           <Switch checked={isDarkMode} onChange={toggleTheme} color="default" />
@@ -281,7 +260,6 @@ const NavDrawer = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
 NavDrawer.propTypes = {
   onThemeToggle: PropTypes.func.isRequired,
   isDarkMode: PropTypes.bool.isRequired,
-  isLoggedIn: PropTypes.bool.isRequired,
 };
 
 export default NavDrawer;

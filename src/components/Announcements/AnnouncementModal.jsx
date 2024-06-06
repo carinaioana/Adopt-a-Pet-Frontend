@@ -17,20 +17,23 @@ const modalStyle = {
 const AnnouncementModal = ({ open, onClose, onCreate }) => {
   const [announcementTitle, setAnnouncementTitle] = useState("");
   const [announcementDescription, setAnnouncementDescription] = useState("");
-  const [file, setFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleCreate = () => {
-    // Assuming you handle the file upload separately and just pass the file object for now
-    const newAnnouncement = {
-      announcementTitle,
-      announcementDescription,
-      file,
-    };
-    onCreate(newAnnouncement);
+    const formData = new FormData();
+    formData.append("AnnouncementTitle", announcementTitle);
+    formData.append("AnnouncementDescription", announcementDescription);
+    formData.append("AnnouncementDate", new Date().toISOString()); // Insert the current date in ISO format
+    if (selectedFile) {
+      formData.append("ImageFile", selectedFile);
+    }
+    onCreate(formData);
   };
 
+  // Inside AnnouncementModal, call onFileSelected when the file input changes
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    const file = event.target.files[0];
+    setSelectedFile(file); // Assuming onFileSelected is passed as a prop
   };
 
   return (

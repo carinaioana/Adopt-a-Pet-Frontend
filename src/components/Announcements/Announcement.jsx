@@ -1,21 +1,21 @@
 import { useState } from "react";
 import {
+  Avatar,
+  Box,
+  Button,
+  CardMedia,
   Dialog,
   DialogActions,
+  DialogContent,
   DialogContentText,
   DialogTitle,
-  Button,
-  Box,
-  Chip,
-  Collapse,
   ListItem,
   ListItemText,
   Paper,
   TextField,
   Typography,
-  DialogContent,
 } from "@mui/material";
-import { Cancel, Delete, ExpandLess, ExpandMore } from "@mui/icons-material";
+import { Cancel, Delete } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton";
 import SaveIcon from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
@@ -30,33 +30,21 @@ const Announcement = ({
   currentUserId,
   announcementUserId,
   announcementId,
-    onUpdate
+  imageUrl,
 }) => {
-  const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const [editedContent, setEditedContent] = useState(content);
   const [openDialog, setOpenDialog] = useState(false);
 
-  const handleClick = () => {
-    setOpen(!open);
-  };
-
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  const handleSave = async () => {
-  const updatedAnnouncement = {
-    announcementId: announcementId, // Assuming announcementId is available in the component's props
-    announcementTitle: editedTitle,
-    announcementDate: date, // Static value; adjust as needed
-    imageUrl: "string", // Placeholder; replace with actual image URL or logic to handle image URLs
-    announcementDescription: editedContent,
+  const handleSave = () => {
+    onEdit(editedTitle, editedContent);
+    setIsEditing(false);
   };
-  await onUpdate(announcementId, updatedAnnouncement);
-  setIsEditing(false);
-};
 
   const handleCancel = () => {
     setEditedTitle(title);
@@ -73,12 +61,15 @@ const Announcement = ({
   };
 
   const isOwner = currentUserId === announcementUserId;
-  console.log(isOwner);
 
   return (
     <Paper
       elevation={3}
-      sx={{ marginBottom: "16px", borderRadius: "8px", overflow: "hidden" }}
+      sx={{
+        marginBottom: "16px",
+        borderRadius: "8px",
+        overflow: "hidden",
+      }}
     >
       <ListItem>
         {isEditing ? (
@@ -102,7 +93,12 @@ const Announcement = ({
           <>
             <ListItemText
               primary={editedTitle}
-              secondary={<Chip label={username} size="small" />}
+              secondary={
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Avatar sx={{ width: 24, height: 24, marginRight: 1 }} />
+                  <Typography variant="body2">{username}</Typography>
+                </Box>
+              }
             />
             <Typography variant="body2" sx={{ marginRight: 2 }}>
               {date}
@@ -110,11 +106,6 @@ const Announcement = ({
           </>
         )}
 
-        {open ? (
-          <ExpandLess onClick={handleClick} />
-        ) : (
-          <ExpandMore onClick={handleClick} />
-        )}
         {isOwner && (
           <>
             {isEditing ? (
@@ -137,16 +128,47 @@ const Announcement = ({
           </>
         )}
       </ListItem>
-      <Collapse in={open} timeout="auto" unmountOnExit>
-        <Box sx={{ padding: "16px" }}>{editedContent}</Box>
-      </Collapse>
+      <Box sx={{ padding: "16px" }}>
+        <Typography variant="body1" gutterBottom>
+          {editedContent}
+        </Typography>
+        {imageUrl && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 2,
+              overflow: "hidden",
+              borderRadius: "12px",
+              border: "2px solid #ccc",
+              width: "fit-content",
+              height: "fit-content",
+              margin: "auto",
+            }}
+          >
+            <CardMedia
+              component="img"
+              image={imageUrl}
+              alt="Announcement"
+              sx={{
+                maxWidth: "100%",
+                maxHeight: "300px",
+                objectFit: "contain",
+                margin: "auto",
+              }}
+            ></CardMedia>
+          </Box>
+        )}
+      </Box>
       <Dialog
         open={openDialog}
         onClose={handleDialogClose}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">
+          {"Delete Announcement"}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
             Are you sure you want to delete this announcement?

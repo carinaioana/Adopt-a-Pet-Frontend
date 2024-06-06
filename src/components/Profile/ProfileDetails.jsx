@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Avatar,
   Button,
@@ -10,11 +10,11 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
+  IconButton,
   List,
+  MenuItem,
   TextField,
   Typography,
-  IconButton,
-  MenuItem,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import PropTypes from "prop-types";
@@ -32,26 +32,26 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
   const [currentUser, setCurrentUser] = useState("");
 
   const [newPet, setNewPet] = useState({
-    animalName: "",
-    animalAge: "",
-    animalType: "",
-    animalBreed: "",
-    animalSex: "",
-    animalDescription: "",
-    personalityTraits: [],
-    imageUrl: "", // Assuming pets have an image property
+    name: "",
+    age: "",
+    type: "",
+    breed: "",
+    sex: "",
+    description: "",
+    traits: [],
+    image: "", // Assuming pets have an image property
   });
 
   const handleOpenAddPetDialog = () => {
     setNewPet({
-      animalName: "",
-      animalAge: "",
-      animalType: "",
-      animalBreed: "",
-      animalSex: "",
-      animalDescription: "",
-      personalityTraits: [],
-      imageUrl: "",
+      name: "",
+      age: "",
+      type: "",
+      breed: "",
+      sex: "",
+      description: "",
+      traits: [],
+      image: "",
     });
     setOpenAddPetDialog(true);
   };
@@ -59,7 +59,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
   useEffect(() => {
     if (selectedPet) {
       const currentPet = user.petProfiles.find(
-        (pet) => pet.animalName === selectedPet.animalName,
+        (pet) => pet.name === selectedPet.name,
       );
       setSelectedPet(currentPet);
     }
@@ -126,60 +126,24 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
       pet.id === selectedPet.id ? selectedPet : pet,
     );
     onUserUpdate({ ...user, petProfiles: updatedPetProfiles });
-    handleUpdatePet().then(setOpenDialog(false));
-
+    setOpenDialog(false); // Close the dialog after saving changes
   };
 
   const [showNewTraitBox, setShowNewTraitBox] = useState(false);
   const handleAddTrait = () => {
     if (!newTrait.trim()) return; // Prevent adding empty traits
-    const updatedTraits = [...selectedPet.personalityTraits, newTrait];
-    setSelectedPet({ ...selectedPet, personalityTraits: updatedTraits });
+    const updatedTraits = [...selectedPet.traits, newTrait];
+    setSelectedPet({ ...selectedPet, traits: updatedTraits });
     // Update the user's petProfiles array with the new trait
     const updatedPetProfiles = user.petProfiles.map((pet) =>
-      pet.animalName === selectedPet.animalName
-        ? { ...selectedPet, personalityTraits: updatedTraits }
+      pet.name === selectedPet.name
+        ? { ...selectedPet, traits: updatedTraits }
         : pet,
     );
     onUserUpdate({ ...user, petProfiles: updatedPetProfiles });
     setNewTrait(""); // Reset new trait input
   };
- /* const fetchPetDetails = async (petId) => {
-    const token = localStorage.getItem("authToken");
-    try {
-      const response = await axios.get(`https://localhost:7141/api/v1/Animals/${petId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setSelectedPet(response.data); // Assuming response.data contains the pet details
-      setIsEditMode(true); // Switch to edit mode
-    } catch (error) {
-      console.error("Error fetching pet details:", error);
-    }
-  };*/
-  const handleUpdatePet = async () => {
-    const token = localStorage.getItem("authToken");
-    const petData = {
-      ...selectedPet, // Spread the updated pet details
-      // Any transformations needed for the API
-    };
-    console.log(petData);
-    try {
-      await axios.put(`https://localhost:7141/api/v1/Animals/${selectedPet.animalId}`, petData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      console.log("Pet updated successfully");
-      // Optionally, refresh the pet list or close the edit dialog
-      setIsEditMode(false); // Exit edit mode
-      // You might want to fetch the updated list of pets here or update the UI accordingly
-    } catch (error) {
-      console.error("Error updating the pet:", error);
-    }
-  };
+
   const handleDeleteAnnouncement = async (announcementId) => {
     const token = localStorage.getItem("authToken"); // Adjust if your token is stored differently
     try {
@@ -201,7 +165,6 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
       console.error("Error deleting announcement:", error);
     }
   };
-
 
   return (
     <>
@@ -255,9 +218,9 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
               <Chip
                 key={index}
                 avatar={
-                  <Avatar alt={pet.animalName} src="/static/images/avatar/1.jpg" />
+                  <Avatar alt={pet.name} src="/static/images/avatar/1.jpg" />
                 } // Placeholder image, replace with actual pet photo if available
-                label={`${pet.animalName} (${pet.animalType})`}
+                label={`${pet.name} (${pet.type})`}
                 variant="outlined"
                 onClick={() => handleOpenDialog(pet)}
               />
@@ -278,15 +241,15 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
             maxWidth="sm"
           >
             <DialogTitle>
-              {selectedPet ? `${selectedPet.animalName}'s Details` : ""}
+              {selectedPet ? `${selectedPet.name}'s Details` : ""}
             </DialogTitle>
             <DialogContent>
               {selectedPet && (
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={5}>
                     <Avatar
-                      alt={selectedPet.animalName}
-                      src={selectedPet.imageUrl || "/static/images/avatar/1.jpg"}
+                      alt={selectedPet.name}
+                      src={selectedPet.image || "/static/images/avatar/1.jpg"}
                       sx={{ width: 128, height: 128 }}
                     />
                   </Grid>
@@ -298,16 +261,17 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           label="Name"
                           variant="outlined"
                           margin="dense"
-                          value={selectedPet.animalName}
+                          value={selectedPet.name}
                           onChange={(e) => {
                             const updatedPet = {
                               ...selectedPet,
-                              animalName: e.target.value,
+                              name: e.target.value,
                             };
                             setSelectedPet(updatedPet);
-                             const updatedPetProfiles = user.petProfiles.map(
+                            // Update the user's petProfiles array with the updated pet details
+                            const updatedPetProfiles = user.petProfiles.map(
                               (pet) =>
-                                pet.animalName === selectedPet.animalName
+                                pet.name === selectedPet.name
                                   ? updatedPet
                                   : pet,
                             );
@@ -323,16 +287,16 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           variant="outlined"
                           margin="dense"
                           type="number"
-                          value={selectedPet.animalAge.toString()}
+                          value={selectedPet.age.toString()}
                           onChange={(e) => {
                             const updatedPet = {
                               ...selectedPet,
-                              animalAge: Number(e.target.value),
+                              age: Number(e.target.value),
                             };
                             setSelectedPet(updatedPet);
                             const updatedPetProfiles = user.petProfiles.map(
                               (pet) =>
-                                pet.animalName === selectedPet.animalName
+                                pet.name === selectedPet.name
                                   ? updatedPet
                                   : pet,
                             );
@@ -347,16 +311,16 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           label="Type"
                           variant="outlined"
                           margin="dense"
-                          value={selectedPet.animalType}
+                          value={selectedPet.type}
                           onChange={(e) => {
                             const updatedPet = {
                               ...selectedPet,
-                              animalType: e.target.value,
+                              type: e.target.value,
                             };
                             setSelectedPet(updatedPet);
                             const updatedPetProfiles = user.petProfiles.map(
                               (pet) =>
-                                pet.animalName === selectedPet.animalName
+                                pet.name === selectedPet.name
                                   ? updatedPet
                                   : pet,
                             );
@@ -371,16 +335,16 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           label="Breed"
                           variant="outlined"
                           margin="dense"
-                          value={selectedPet.animalBreed}
+                          value={selectedPet.breed}
                           onChange={(e) => {
                             const updatedPet = {
                               ...selectedPet,
-                              animalBreed: e.target.value,
+                              breed: e.target.value,
                             };
                             setSelectedPet(updatedPet);
                             const updatedPetProfiles = user.petProfiles.map(
                               (pet) =>
-                                pet.animalName === selectedPet.animalName
+                                pet.name === selectedPet.name
                                   ? updatedPet
                                   : pet,
                             );
@@ -396,16 +360,16 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           label="Sex"
                           variant="outlined"
                           margin="dense"
-                          value={selectedPet.animalSex}
+                          value={selectedPet.sex}
                           onChange={(e) => {
                             const updatedPet = {
                               ...selectedPet,
-                              animalSex: e.target.value,
+                              sex: e.target.value,
                             };
                             setSelectedPet(updatedPet);
                             const updatedPetProfiles = user.petProfiles.map(
                               (pet) =>
-                                pet.animalName === selectedPet.animalName
+                                pet.name === selectedPet.name
                                   ? updatedPet
                                   : pet,
                             );
@@ -425,16 +389,16 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           margin="dense"
                           multiline
                           rows={4}
-                          value={selectedPet.animalDescription}
+                          value={selectedPet.description}
                           onChange={(e) => {
                             const updatedPet = {
                               ...selectedPet,
-                              animalDescription: e.target.value,
+                              description: e.target.value,
                             };
                             setSelectedPet(updatedPet);
                             const updatedPetProfiles = user.petProfiles.map(
                               (pet) =>
-                                pet.animalName === selectedPet.animalName
+                                pet.name === selectedPet.name
                                   ? updatedPet
                                   : pet,
                             );
@@ -445,7 +409,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           }}
                         />
                         <Stack direction="row" spacing={1} alignItems="center">
-                          {selectedPet.personalityTraits.map((trait, index) => (
+                          {selectedPet.traits.map((trait, index) => (
                             <Chip
                               key={index}
                               label={trait}
@@ -454,19 +418,19 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 isEditMode
                                   ? () => {
                                       const updatedTraits =
-                                        selectedPet.personalityTraits.filter(
+                                        selectedPet.traits.filter(
                                           (_, i) => i !== index,
                                         );
                                       setSelectedPet({
                                         ...selectedPet,
-                                        personalityTraits: updatedTraits,
+                                        traits: updatedTraits,
                                       });
                                       const updatedPetProfiles =
                                         user.petProfiles.map((pet) =>
-                                          pet.animalName === selectedPet.animalName
+                                          pet.name === selectedPet.name
                                             ? {
                                                 ...selectedPet,
-                                                personalityTraits: updatedTraits,
+                                                traits: updatedTraits,
                                               }
                                             : pet,
                                         );
@@ -516,32 +480,32 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                       <>
                         <Typography variant="body1">
                           <strong>Name:</strong>{" "}
-                          <Chip label={selectedPet.animalName}></Chip>
+                          <Chip label={selectedPet.name}></Chip>
                         </Typography>
                         <Typography variant="body1">
                           <strong>Age:</strong>
-                          <Chip label={selectedPet.animalAge}></Chip>
+                          <Chip label={selectedPet.age}></Chip>
                         </Typography>
                         <Typography variant="body1">
                           <strong>Type:</strong>{" "}
-                          <Chip label={selectedPet.animalType}></Chip>
+                          <Chip label={selectedPet.type}></Chip>
                         </Typography>
                         <Typography variant="body1">
                           <strong>Breed:</strong>{" "}
-                          <Chip label={selectedPet.animalBreed}></Chip>
+                          <Chip label={selectedPet.breed}></Chip>
                         </Typography>
                         <Typography variant="body1">
                           <strong>Sex:</strong>
-                          <Chip label={selectedPet.animalSex}></Chip>
+                          <Chip label={selectedPet.sex}></Chip>
                         </Typography>
                         <Typography variant="body1">
                           <strong>Description:</strong>{" "}
-                          <Chip label={selectedPet.animalDescription}></Chip>
+                          <Chip label={selectedPet.description}></Chip>
                         </Typography>
                         <Stack direction="row" spacing={1}>
                           {" "}
                           Traits:
-                          {selectedPet.personalityTraits.map((trait, index) => (
+                          {selectedPet.traits.map((trait, index) => (
                             <Chip key={index} label={trait} />
                           ))}
                         </Stack>
@@ -580,7 +544,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 label="Name"
                 variant="outlined"
                 margin="dense"
-                value={newPet.animalName}
+                value={newPet.name}
                 onChange={(e) => setNewPet({ ...newPet, name: e.target.value })}
               />
             </Grid>
@@ -591,8 +555,8 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 variant="outlined"
                 margin="dense"
                 type="number"
-                value={newPet.animalAge}
-                onChange={(e) => setNewPet({ ...newPet, animalAge: e.target.value })}
+                value={newPet.age}
+                onChange={(e) => setNewPet({ ...newPet, age: e.target.value })}
               />
             </Grid>
             <Grid item xs={12}>
@@ -601,8 +565,8 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 label="Type"
                 variant="outlined"
                 margin="dense"
-                value={newPet.animalType}
-                onChange={(e) => setNewPet({ ...newPet, animalType: e.target.value })}
+                value={newPet.type}
+                onChange={(e) => setNewPet({ ...newPet, type: e.target.value })}
               />
             </Grid>
             <Grid item xs={12}>
@@ -611,9 +575,9 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 label="Breed"
                 variant="outlined"
                 margin="dense"
-                value={newPet.animalBreed}
+                value={newPet.breed}
                 onChange={(e) =>
-                  setNewPet({ ...newPet, animalBreed: e.target.value })
+                  setNewPet({ ...newPet, breed: e.target.value })
                 }
               />
             </Grid>
@@ -624,8 +588,8 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 variant="outlined"
                 margin="dense"
                 select
-                value={newPet.animalSex}
-                onChange={(e) => setNewPet({ ...newPet, animalSex: e.target.value })}
+                value={newPet.sex}
+                onChange={(e) => setNewPet({ ...newPet, sex: e.target.value })}
               >
                 <MenuItem value="male">Male</MenuItem>
                 <MenuItem value="female">Female</MenuItem>
@@ -639,13 +603,13 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 margin="dense"
                 multiline
                 rows={4}
-                value={newPet.animalDescription}
+                value={newPet.description}
                 onChange={(e) =>
-                  setNewPet({ ...newPet, animalDescription: e.target.value })
+                  setNewPet({ ...newPet, description: e.target.value })
                 }
               />
             </Grid>
-            {newPet.personalityTraits.map((trait, index) => (
+            {newPet.traits.map((trait, index) => (
               <Grid item xs={12} key={index}>
                 <TextField
                   fullWidth
@@ -654,18 +618,18 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                   margin="dense"
                   value={trait}
                   onChange={(e) => {
-                    const updatedTraits = [...newPet.personalityTraits];
+                    const updatedTraits = [...newPet.traits];
                     updatedTraits[index] = e.target.value;
-                    setNewPet({ ...newPet, personalityTraits: updatedTraits });
+                    setNewPet({ ...newPet, traits: updatedTraits });
                   }}
                 />
                 <IconButton
                   aria-label="delete trait"
                   onClick={() => {
-                    const updatedTraits = newPet.personalityTraits.filter(
+                    const updatedTraits = newPet.traits.filter(
                       (_, i) => i !== index,
                     );
-                    setNewPet({ ...newPet, personalityTraits: updatedTraits });
+                    setNewPet({ ...newPet, traits: updatedTraits });
                   }}
                 >
                   <CloseIcon />
@@ -675,7 +639,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
             <Grid item xs={12}>
               <Button
                 onClick={() =>
-                  setNewPet({ ...newPet, personalityTraits: [...newPet.personalityTraits, ""] })
+                  setNewPet({ ...newPet, traits: [...newPet.traits, ""] })
                 }
                 startIcon={<AddIcon />}
               >
@@ -689,14 +653,14 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
           <Button
             onClick={async () => {
               const petData = {
-                animalType: newPet.animalType,
-                animalName: newPet.animalName,
-                animalDescription: newPet.animalDescription,
-                personalityTraits: newPet.personalityTraits,
-                animalAge: parseInt(newPet.animalAge, 10), // Ensure age is an integer
-                animalBreed: newPet.animalBreed,
-                imageUrl: newPet.imageUrl, // Ensure you have a way to set this, e.g., from a file upload
-                animalSex: newPet.animalSex,
+                animalType: newPet.type,
+                animalName: newPet.name,
+                animalDescription: newPet.description,
+                personalityTraits: newPet.traits,
+                animalAge: parseInt(newPet.age, 10), // Ensure age is an integer
+                animalBreed: newPet.breed,
+                imageUrl: newPet.image, // Ensure you have a way to set this, e.g., from a file upload
+                animalSex: newPet.sex,
               };
               const authToken = localStorage.getItem("authToken");
               try {

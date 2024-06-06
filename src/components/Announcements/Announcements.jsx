@@ -1,28 +1,23 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  List,
-  Button,
-  CircularProgress,
-  TextField,
-} from "@mui/material";
+import { Box, List, TextField, Typography } from "@mui/material";
 import SortIcon from "@mui/icons-material/Sort";
 import IconButton from "@mui/material/IconButton";
 import AnnouncementModal from "./AnnouncementModal.jsx";
 import axios from "axios";
 import Announcement from "./Announcement.jsx";
+import AddIcon from "@mui/icons-material/Add";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const { userDetails } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
   const [isSortedAsc, setIsSortedAsc] = useState(true);
   const [, setSearchQuery] = useState("");
   const handleSearchChange = (event) => {
-    const value = event.target.value;
+    const value = event.target.value.toLowerCase();
     setSearchQuery(value);
     filterAnnouncements(value);
   };
@@ -31,39 +26,12 @@ const AnnouncementList = () => {
     if (!query) {
       fetchAnnouncements(); // Fetch all announcements if the search query is empty
     } else {
-      const filteredAnnouncements = announcements.filter(
-        (announcement) =>
-          announcement.announcementTitle
-            .toLowerCase()
-            .includes(query.toLowerCase()) ||
-          announcement.announcementDescription
-            .toLowerCase()
-            .includes(query.toLowerCase()),
+      const filteredAnnouncements = announcements.filter((announcement) =>
+        announcement.announcementTitle.toLowerCase().includes(query),
       );
       setAnnouncements(filteredAnnouncements);
     }
   };
-
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      const token = localStorage.getItem("authToken");
-      try {
-        const response = await axios.get(
-          "https://localhost:7141/api/v1/Authentication/currentuserinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        setCurrentUser(response.data); // Set the current user's information
-      } catch (error) {
-        console.error("Error fetching current user info:", error);
-      }
-    };
-    console.log(currentUser);
-    fetchCurrentUser();
-  }, []);
 
   useEffect(() => {
     fetchAnnouncements(); // Call this function on component mount
@@ -91,31 +59,30 @@ const AnnouncementList = () => {
       );
 
       setAnnouncements(announcementsWithUser);
+      console.log(announcementsWithUser);
     } catch (error) {
       console.error("Error fetching announcements:", error);
     }
   };
 
-  const handleCreateAnnouncement = async (newAnnouncement) => {
-    const announcementWithDate = {
-      ...newAnnouncement,
-      announcementDate: new Date().toISOString(),
-    };
+  const handleCreateAnnouncement = async (formData) => {
     const token = localStorage.getItem("authToken");
 
     try {
       const response = await axios.post(
         "https://localhost:7141/api/v1/Announc",
-        announcementWithDate,
+        formData, // Directly use FormData object received from the modal
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data", // This is important for files
           },
         },
       );
 
       if (response.data.success) {
         console.log("Announcement created successfully");
+        // Optionally, refresh the announcements list to include the new announcement
         fetchAnnouncements();
       } else {
         console.error(
@@ -128,22 +95,6 @@ const AnnouncementList = () => {
     }
     handleCloseModal();
   };
-
-    const handleUpdateAnnouncement = async (announcementId, updatedAnnouncement) => {
-        const token = localStorage.getItem("authToken");
-        try {
-            await axios.put(`https://localhost:7141/api/v1/Announc/${announcementId}`, updatedAnnouncement, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-            console.log("Announcement updated successfully");
-            console.log(updatedAnnouncement);
-        } catch (error) {
-            console.error("Error updating the announcement:", error);
-        }
-    };
 
   const handleDeleteAnnouncement = async (announcementId) => {
     try {
@@ -175,17 +126,14 @@ const AnnouncementList = () => {
     setIsSortedAsc(!isSortedAsc); // Toggle the sort order
     setAnnouncements((currentAnnouncements) =>
       [...currentAnnouncements].sort((a, b) => {
-        const dateA = new Date(a.announcementDate);
-        const dateB = new Date(b.announcementDate);
-        return isSortedAsc ? dateB - dateA : dateA - dateB; // Sort based on the current sort order
+        const titleA = a.announcementTitle.toLowerCase();
+        const titleB = b.announcementTitle.toLowerCase();
+        if (titleA < titleB) return isSortedAsc ? -1 : 1;
+        if (titleA > titleB) return isSortedAsc ? 1 : -1;
+        return 0;
       }),
     );
   };
-
-  if (!announcements.length) {
-    return <CircularProgress>Loading Announcements</CircularProgress>;
-  }
-
   return (
     <Box
       sx={{
@@ -220,36 +168,48 @@ const AnnouncementList = () => {
       >
         Announcements
       </Typography>
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <IconButton onClick={handleSort} sx={{ mr: 1, color: "primary.main" }}>
-          <SortIcon />
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton
+            onClick={handleSort}
+            sx={{ mr: 1, color: "primary.main" }}
+          >
+            <SortIcon />
+          </IconButton>
+          <TextField
+            size="small"
+            label="Search Announcements"
+            variant="outlined"
+            sx={{ mr: 1, width: "250px" }} // Ensure adequate width for ease of typing
+            onChange={handleSearchChange}
+          />
+        </Box>
+        <IconButton onClick={handleOpenModal} sx={{ color: "primary.main" }}>
+          <AddIcon />
         </IconButton>
-        <TextField
-          size="small"
-          label="Search Announcements"
-          variant="outlined"
-          sx={{ mr: 1, width: "250px" }} // Ensure adequate width for ease of typing
-          onChange={handleSearchChange}
-        />
       </Box>
 
       <List sx={{ overflow: "auto", mt: 2 }}>
         {Array.isArray(announcements) && announcements.length > 0 ? (
-          announcements.map((announcement, index) => (
+          announcements.map((announcement) => (
             <Announcement
-              key={index}
+              key={announcement.announcementId}
               title={announcement.announcementTitle}
               content={announcement.announcementDescription}
-              date={new Date(announcement.announcementDate).toISOString()}
-              username={
-                currentUser.claims[
-                  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
-                ]
-              }
-              currentUserId={currentUser.userName}
+              date={new Date(announcement.announcementDate).toLocaleString(
+                "en-UK",
+              )}
+              username={announcement.userName}
+              currentUserId={userDetails.id}
               announcementUserId={announcement.createdBy}
               announcementId={announcement.announcementId}
-              onUpdate={handleUpdateAnnouncement}
+              imageUrl={announcement.imageUrl}
               onDelete={() =>
                 handleDeleteAnnouncement(announcement.announcementId)
               }

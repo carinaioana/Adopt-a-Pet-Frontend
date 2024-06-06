@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import "./styles/App.css";
@@ -8,25 +7,19 @@ import Profile from "./components/Profile/Profile.jsx";
 import Announcements from "./components/Announcements/Announcements.jsx";
 import About from "./components/About.jsx";
 import { ThemeProvider } from "@mui/material/styles";
-import { CssBaseline } from "@mui/material";
+import { CircularProgress, CssBaseline } from "@mui/material";
 import { darkTheme, lightTheme } from "./theme";
 import Login from "./components/Authentication/Login.jsx";
-import { useAuth } from "./components/Authentication/context/AuthContext.jsx";
+import { useAuth } from "./components/context/AuthContext.jsx";
 import PropTypes from "prop-types";
 import Register from "./components/Authentication/Register.jsx";
 import PetDetailsPage from "./components/PetMedicalHistory.jsx";
 
 const App = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const { isLoggedIn } = useAuth();
-
-  const toggleTheme = () => {
-    setIsDarkMode((prevMode) => !prevMode);
-  };
+  const { authToken, isDarkMode, toggleDarkMode, isLoading } = useAuth();
+  const isLoggedIn = !!authToken;
 
   const ProtectedRoute = ({ children }) => {
-    const { isLoggedIn } = useAuth();
-
     if (!isLoggedIn) {
       return <Navigate to="/login" replace />;
     }
@@ -37,10 +30,9 @@ const App = () => {
   ProtectedRoute.propTypes = {
     children: PropTypes.node.isRequired,
   };
-  const { isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <CircularProgress>Loading...</CircularProgress>;
   }
 
   return (
@@ -48,8 +40,8 @@ const App = () => {
       <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
         <CssBaseline />
         <Header
-          onThemeToggle={toggleTheme}
-          isDarkMode={isDarkMode}
+          onThemeToggle={toggleDarkMode} // Updated to use toggleDarkMode from context
+          isDarkMode={isDarkMode} // Updated to use isDarkMode from context
           isLoggedIn={isLoggedIn}
         />
         <div className="content">
@@ -74,7 +66,6 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/announcements"
               element={
@@ -83,7 +74,6 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-
           </Routes>
         </div>
         <Footer />

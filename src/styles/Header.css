@@ -1,14 +1,11 @@
-header {
+.header {
     position: relative;
     padding: 1rem 2rem;
     height: fit-content;
     display: flex;
-    max-width: 100vw;
-    width: 100%;
+    min-width: 100%;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: nowrap;
-    flex-grow: 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     z-index: 100;
 }
@@ -50,9 +47,9 @@ header {
 }
 
 .list-item-text {
-    white-space: nowrap; /* Prevents the text from wrapping */
-    overflow: hidden; /* Hides overflow */
-    text-overflow: ellipsis; /* Adds an ellipsis for overflowed text */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .MuiIconButton-root:focus {
@@ -66,7 +63,6 @@ header {
 
 @media (max-width: 30rem) {
     header {
-        justify-items: center;
         flex-direction: column;
         align-items: center;
         padding: 1rem;

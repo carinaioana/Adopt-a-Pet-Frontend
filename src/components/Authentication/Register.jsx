@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { Button, TextField, Box } from "@mui/material";
-import { useAuth } from "./context/AuthContext.jsx";
+import { Box, Button, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import PasswordTooltip from "./PasswordTooltip.jsx";
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -34,56 +33,56 @@ const Register = () => {
   const allValidationsPassed =
     Object.values(passwordValidations).every(Boolean);
 
-      const handleSubmit = async (event) => {
-      event.preventDefault();
-      if (email && username && allValidationsPassed) {
-        try {
-          const response = await fetch(
-            "https://localhost:7141/api/v1/Authentication/register",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ email, username, password, name }),
-              secure: false,
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (email && username && allValidationsPassed) {
+      try {
+        const response = await fetch(
+          "https://localhost:7141/api/v1/Authentication/register",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          );
-
-          if (response.ok) {
-            const data = await response.json(); // Assuming the response includes user info
-            localStorage.setItem("authToken", data.token); // Save the token
-            localStorage.setItem("userInfo", JSON.stringify(data.user)); // Save user info
-              toast.success('Registration successful!');
-              setTimeout(() => {
-                  navigate("/", { replace: true });
-              }, 1000);
-          } else {
-              toast.error('Registration failed. Please try again.');
-          }
-        } catch (error) {
-          console.error("Registration error:", error);
-          toast.error("An error occurred during registration. Please try again.");
-        }
-      } else {
-        toast.error(
-          "Please ensure all fields are correctly filled and all password criteria are met.",
+            body: JSON.stringify({ email, username, password, name }),
+            secure: false,
+          },
         );
+
+        if (response.ok) {
+          const data = await response.json(); // Assuming the response includes user info
+          localStorage.setItem("authToken", data.token); // Save the token
+          localStorage.setItem("userInfo", JSON.stringify(data.user)); // Save user info
+          toast.success("Registration successful!");
+          setTimeout(() => {
+            navigate("/", { replace: true });
+          }, 1000);
+        } else {
+          toast.error("Registration failed. Please try again.");
+        }
+      } catch (error) {
+        console.error("Registration error:", error);
+        toast.error("An error occurred during registration. Please try again.");
       }
-    };
+    } else {
+      toast.error(
+        "Please ensure all fields are correctly filled and all password criteria are met.",
+      );
+    }
+  };
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-        <ToastContainer />
-        <TextField
-            margin="normal"
-            required
-            fullWidth
-            label="Name"
-            name="name"
-            autoFocus
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-        />
+      <ToastContainer />
+      <TextField
+        margin="normal"
+        required
+        fullWidth
+        label="Name"
+        name="name"
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
       <TextField
         margin="normal"
         required
@@ -132,6 +131,14 @@ const Register = () => {
 
       <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
         Sign Up
+      </Button>
+      <Button
+        fullWidth
+        variant="text"
+        sx={{ mt: 1, mb: 2 }}
+        onClick={() => navigate("/login")}
+      >
+        Already have an account? Log in
       </Button>
     </Box>
   );

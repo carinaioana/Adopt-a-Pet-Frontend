@@ -1,18 +1,18 @@
 import { createTheme } from "@mui/material/styles";
 
 const colors = {
-  lightPrimary: "#1976d2",
+  lightPrimary: "#ff6f61",
   lightOnPrimary: "#ffffff",
-  darkPrimary: "#90caf9",
-  darkOnPrimary: "#000000",
-  error: "#d32f2f",
-  background: "#f3e5f5",
-  darkBackground: "#121212",
+  darkPrimary: "#8e24aa",
+  darkOnPrimary: "#ffffff",
+  error: "#e57373",
+  background: "#fff3e0",
+  darkBackground: "#311b92",
 };
 
 export const lightTheme = createTheme({
   palette: {
-    type: "light",
+    mode: "light",
     primary: {
       main: colors.lightPrimary,
       contrastText: colors.lightOnPrimary,
@@ -25,18 +25,18 @@ export const lightTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontSize: "2.25rem", fontWeight: 500, lineHeight: 1.2 },
-    h2: { fontSize: "2rem", fontWeight: 500, lineHeight: 1.3 },
-    body1: { fontSize: "1rem", fontWeight: 400, lineHeight: 1.5 },
+    fontFamily: '"Comic Sans MS", "Comic Sans", cursive',
+    h1: { fontSize: "2.5rem", fontWeight: 700, lineHeight: 1.2 },
+    h2: { fontSize: "2.25rem", fontWeight: 600, lineHeight: 1.3 },
+    body1: { fontSize: "1.1rem", fontWeight: 400, lineHeight: 1.6 },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          fontSize: "1rem",
-          margin: "8px",
-          padding: "8px 16px",
+          fontSize: "1.1rem",
+          margin: "10px",
+          padding: "10px 20px",
         },
       },
     },
@@ -51,40 +51,40 @@ export const lightTheme = createTheme({
 
 export const darkTheme = createTheme({
   palette: {
-    type: "dark",
+    mode: "dark",
     primary: {
-      main: "#bb86fc",
-      contrastText: "#000000",
+      main: "#077187", // Cerulean
+      contrastText: "#fffaff", // Ghost White
     },
     secondary: {
-      main: "#03dac6",
-      contrastText: "#000000",
+      main: "#82204a", // Murrey
+      contrastText: "#fffaff", // Ghost White
     },
     error: {
-      main: colors.error,
+      main: "#772d8b", // Eminence
     },
     background: {
-      default: "#121212",
-      paper: "#1e1e1e",
+      default: "#0a0903", // Smoky Black
+      paper: "#0a0903", // Smoky Black
     },
     text: {
-      primary: "#ffffff",
-      secondary: "#a1a1a1",
+      primary: "#fffaff", // Ghost White
+      secondary: "#b0b0b0", // Medium grey
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontSize: "2.25rem", fontWeight: 500, lineHeight: 1.2 },
-    h2: { fontSize: "2rem", fontWeight: 500, lineHeight: 1.3 },
-    body1: { fontSize: "1rem", fontWeight: 400, lineHeight: 1.5 },
+    fontFamily: '"Comic Sans MS", "Comic Sans", cursive',
+    h1: { fontSize: "2.5rem", fontWeight: 700, lineHeight: 1.2 },
+    h2: { fontSize: "2.25rem", fontWeight: 600, lineHeight: 1.3 },
+    body1: { fontSize: "1.1rem", fontWeight: 400, lineHeight: 1.6 },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          fontSize: "1rem",
-          margin: "8px",
-          padding: "8px 16px",
+          fontSize: "1.1rem",
+          margin: "10px",
+          padding: "10px 20px",
         },
       },
     },
