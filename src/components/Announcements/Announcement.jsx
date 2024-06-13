@@ -1,24 +1,22 @@
 import { useState } from "react";
+import { FaEdit, FaSave, FaTimes, FaTrash } from "react-icons/fa";
 import {
   Avatar,
   Box,
   Button,
-  CardMedia,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  ListItem,
-  ListItemText,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Cancel, Delete } from "@mui/icons-material";
-import IconButton from "@mui/material/IconButton";
-import SaveIcon from "@mui/icons-material/Save";
-import EditIcon from "@mui/icons-material/Edit";
+  IconButton,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Text,
+  Image,
+  useColorModeValue,
+  Container,
+} from "@chakra-ui/react";
 
 const Announcement = ({
   title,
@@ -35,11 +33,14 @@ const Announcement = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
   const [editedContent, setEditedContent] = useState(content);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleEdit = () => {
     setIsEditing(true);
   };
+
+  console.log(imageUrl);
 
   const handleSave = () => {
     onEdit(editedTitle, editedContent);
@@ -52,142 +53,169 @@ const Announcement = ({
     setIsEditing(false);
   };
 
-  const handleDialogOpen = () => {
-    setOpenDialog(true);
+  const handleImageModalOpen = () => {
+    setIsImageModalOpen(true);
   };
 
-  const handleDialogClose = () => {
-    setOpenDialog(false);
+  const handleImageModalClose = () => {
+    setIsImageModalOpen(false);
   };
 
+  const handleDeleteModalOpen = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+  };
+
+  console.log("this is the image url", imageUrl);
   const isOwner = currentUserId === announcementUserId;
 
   return (
-    <Paper
-      elevation={3}
-      sx={{
-        marginBottom: "16px",
-        borderRadius: "8px",
-        overflow: "hidden",
-      }}
+    <Container
+      display="flex"
+      flexDirection="column"
+      bg={useColorModeValue("white", "gray.700")}
+      boxShadow="md"
+      borderRadius="md"
+      overflow="hidden"
+      mb={4}
     >
-      <ListItem>
+      <Box p={4} display="flex" flexDirection="column" gap={2}>
         {isEditing ? (
           <>
-            <TextField
-              variant="outlined"
-              size="small"
+            <Input
+              size="sm"
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
-              sx={{ marginRight: 1 }}
+              mb={2}
             />
-            <TextField
-              variant="outlined"
-              size="small"
+            <Input
+              size="sm"
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
-              sx={{ marginRight: 1 }}
             />
           </>
         ) : (
           <>
-            <ListItemText
-              primary={editedTitle}
-              secondary={
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <Avatar sx={{ width: 24, height: 24, marginRight: 1 }} />
-                  <Typography variant="body2">{username}</Typography>
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <Box>
+                <Text fontWeight="semibold" fontSize="lg">
+                  {editedTitle}
+                </Text>
+                <Box display="flex" alignItems="center" mt={1}>
+                  <Avatar name={username} size="xs" mr={2} />
+                  <Text fontSize="sm">{username}</Text>
                 </Box>
-              }
-            />
-            <Typography variant="body2" sx={{ marginRight: 2 }}>
-              {date}
-            </Typography>
+                <Text fontSize="sm" color="gray.500" mt={1}>
+                  {date}
+                </Text>
+              </Box>
+              {isOwner && (
+                <Box display="flex" gap={2}>
+                  {isEditing ? (
+                    <>
+                      <IconButton
+                        icon={<FaSave />}
+                        aria-label="Save"
+                        onClick={handleSave}
+                      />
+                      <IconButton
+                        icon={<FaTimes />}
+                        aria-label="Cancel"
+                        onClick={handleCancel}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <IconButton
+                        icon={<FaEdit />}
+                        aria-label="Edit"
+                        onClick={handleEdit}
+                      />
+                      <IconButton
+                        icon={<FaTrash />}
+                        aria-label="Delete"
+                        onClick={handleDeleteModalOpen}
+                      />
+                    </>
+                  )}
+                </Box>
+              )}
+            </Box>
           </>
-        )}
-
-        {isOwner && (
-          <>
-            {isEditing ? (
-              <>
-                <IconButton onClick={handleSave}>
-                  <SaveIcon />
-                </IconButton>
-                <IconButton onClick={handleCancel}>
-                  <Cancel />
-                </IconButton>
-              </>
-            ) : (
-              <IconButton onClick={handleEdit}>
-                <EditIcon />
-              </IconButton>
-            )}
-            <IconButton onClick={handleDialogOpen}>
-              <Delete />
-            </IconButton>
-          </>
-        )}
-      </ListItem>
-      <Box sx={{ padding: "16px" }}>
-        <Typography variant="body1" gutterBottom>
-          {editedContent}
-        </Typography>
-        {imageUrl && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              mt: 2,
-              overflow: "hidden",
-              borderRadius: "12px",
-              border: "2px solid #ccc",
-              width: "fit-content",
-              height: "fit-content",
-              margin: "auto",
-            }}
-          >
-            <CardMedia
-              component="img"
-              image={imageUrl}
-              alt="Announcement"
-              sx={{
-                maxWidth: "100%",
-                maxHeight: "300px",
-                objectFit: "contain",
-                margin: "auto",
-              }}
-            ></CardMedia>
-          </Box>
         )}
       </Box>
-      <Dialog
-        open={openDialog}
-        onClose={handleDialogClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {"Delete Announcement"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this announcement?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button
-            onClick={() => {
-              onDelete();
-              handleDialogClose();
-            }}
-            autoFocus
+      <Box p={4}>
+        <Text mb={4}>{editedContent}</Text>
+        {imageUrl && (
+          <Box
+            mt={4}
+            mx="auto"
+            maxW="md"
+            borderRadius="md"
+            overflow="hidden"
+            boxShadow="md"
+            cursor="pointer"
+            onClick={handleImageModalOpen}
           >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Paper>
+            <Image
+              src={imageUrl}
+              alt="Announcement"
+              maxH="200px"
+              objectFit="cover"
+              w="100%"
+              onError={(e) => console.error("Image failed to load:", e)}
+            />
+          </Box>
+        )}
+        <Modal isOpen={isImageModalOpen} onClose={handleImageModalClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Image Preview</ModalHeader>
+            <ModalBody>
+              <Image
+                src={imageUrl}
+                alt="Announcement"
+                w="100%"
+                onError={(e) => console.error("Image failed to load:", e)}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button onClick={handleImageModalClose}>Close</Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </Box>
+      <Modal isOpen={isDeleteModalOpen} onClose={handleDeleteModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Delete Announcement</ModalHeader>
+          <ModalBody>
+            <Text>Are you sure you want to delete this announcement?</Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button mr={3} onClick={handleDeleteModalClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="red"
+              onClick={() => {
+                onDelete();
+                handleDeleteModalClose();
+              }}
+            >
+              Delete
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Container>
   );
 };
 

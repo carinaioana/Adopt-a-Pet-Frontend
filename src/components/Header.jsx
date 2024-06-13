@@ -1,47 +1,49 @@
+import { HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Flex,
+  Heading,
+  IconButton,
+  Spacer,
+  useColorMode,
+  useDisclosure,
+} from "@chakra-ui/react";
 import PropTypes from "prop-types";
 import NavDrawer from "./NavDrawer.jsx";
-import "../styles/Header.css";
-import { AppBar, Typography } from "@mui/material";
 
-const Header = ({ onThemeToggle, isDarkMode, isLoggedIn }) => {
-  const toggleTheme = () => {
-    onThemeToggle();
-  };
+const Header = ({ isLoggedIn }) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { colorMode, toggleColorMode } = useColorMode();
 
   return (
-    <AppBar
-      sx={{
-        padding: "1rem 2rem",
-        height: "fit-content",
-        display: "flex",
-        flexDirection: "row",
-        minWidth: "100%",
-        justifyContent: "space-between",
-        // alignItems: "flex-start",
-        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.15)",
-        zIndex: 100,
-      }}
+    <Flex
+      as="header"
+      align="center"
+      justify="space-between"
+      wrap="wrap"
+      padding="1.5rem"
+      bg={colorMode === "light" ? "gray.100" : "gray.800"}
+      color={colorMode === "light" ? "gray.600" : "gray.200"}
+      boxShadow="md"
+      width="100%" // This line makes the Flex component stretch the whole width
     >
-      <Typography
-        variant="h4"
-        className="title"
-        sx={{ alignSelf: "flex-start" }}
-      >
+      <Heading as="h1" size="lg" letterSpacing={"-.1rem"}>
         Adopt A Pet
-      </Typography>
+      </Heading>
+      <Spacer />
+
       <NavDrawer
-        onThemeToggle={toggleTheme}
-        isDarkMode={isDarkMode}
+        isOpen={isOpen}
+        onClose={onClose}
         isLoggedIn={isLoggedIn}
-        sx={{ alignSelf: "flex-end" }}
-      ></NavDrawer>
-    </AppBar>
+        colorMode={colorMode}
+      />
+    </Flex>
   );
 };
 
 Header.propTypes = {
-  onThemeToggle: PropTypes.func.isRequired,
-  isDarkMode: PropTypes.bool.isRequired,
+  isLoggedIn: PropTypes.bool.isRequired,
 };
 
 export default Header;

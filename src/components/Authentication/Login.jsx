@@ -1,15 +1,37 @@
 import { useState } from "react";
-import { Box, Button, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Stack,
+  Text,
+  useColorMode,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const { login, triggerRefresh } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, userDetails } = useAuth();
   const navigate = useNavigate();
+  const { colorMode, toggleColorMode } = useColorMode();
+  const bgGradient = useColorModeValue(
+    "linear(to-r, orange.100, orange.50)",
+    "linear(to-r, blue.900, blue.700)",
+  );
+
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -31,8 +53,8 @@ const Login = () => {
         localStorage.setItem("authToken", token);
         await login(token);
         toast.success("Login successful!");
-        navigate("/", { replace: true });
-        triggerRefresh();
+
+        navigate("/profile", { replace: true });
       } else {
         toast.error("Invalid username or password.");
       }
@@ -42,44 +64,75 @@ const Login = () => {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-      <ToastContainer />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        label="Username"
-        name="username"
-        autoComplete="username"
-        autoFocus
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        name="password"
-        label="Password"
-        type="password"
-        autoComplete="current-password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-        Sign In
-      </Button>
-      <Button
-        fullWidth
-        variant="text"
-        sx={{ mt: 1, mb: 2 }}
-        onClick={() => {
-          navigate("/register"); // Adjust the path as necessary based on your routing setup
-        }}
+    <Flex height="100%" justifyItems="center" justifyContent="center">
+      <Box
+        mt="2rem"
+        borderWidth={1}
+        px={8}
+        py={12}
+        rounded="md"
+        shadow="lg"
+        bg="white"
+        minW="md"
+        maxW="lg"
+        bgGradient={bgGradient}
       >
-        Don&apos;t have an account? Register
-      </Button>
-    </Box>
+        <Heading mb={6} textAlign="center">
+          Login
+        </Heading>
+        <form onSubmit={handleSubmit}>
+          <Stack spacing="1rem">
+            <FormControl id="username" isRequired>
+              <FormLabel>Username</FormLabel>
+              <Input
+                type="text"
+                placeholder="Enter your username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </FormControl>
+            <FormControl id="password" isRequired>
+              <FormLabel>Password</FormLabel>
+              <InputGroup>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <InputRightElement>
+                  <Button
+                    bg="ghost"
+                    h="1.75rem"
+                    size="sm"
+                    onClick={handleClickShowPassword}
+                  >
+                    {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
+            <Button
+              colorScheme="blue"
+              variant="solid"
+              type="submit"
+              onClick={handleSubmit}
+            >
+              Sign In
+            </Button>
+            <Text align="center">
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                onClick={() => navigate("/register")}
+              >
+                Don't have an account?
+              </Button>
+            </Text>
+          </Stack>
+        </form>
+      </Box>
+    </Flex>
   );
 };
 

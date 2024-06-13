@@ -1,26 +1,25 @@
-.cat-parallax{
+.cat-parallax {
     min-height: 100vh;
+    min-width: 100%;
     position: relative;
 }
 
 .dog-parallax{
     min-height: 100vh;
+    min-width: 100%;
     position: relative;
 }
 .pets-parallax{
     min-height: 100vh;
+    min-width: 100%;
     position: relative;
-}
-.container{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 1rem;
 }
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 1rem;
-    min-width: 90vw; /* Adjust the width to 100vw */
+    margin: 0;
+    width: 100%;
+    overflow-x: hidden;
 }
+

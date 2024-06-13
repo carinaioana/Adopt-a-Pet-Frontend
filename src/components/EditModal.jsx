@@ -1,11 +1,16 @@
 import {
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from "@mui/material";
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Input,
+  Textarea,
+  useDisclosure,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 const EditModal = ({ open, context, onClose, onSave }) => {
@@ -22,10 +27,11 @@ const EditModal = ({ open, context, onClose, onSave }) => {
 
   const handleSave = () => {
     let newValue;
+    const utcDate = new Date(date).toISOString();
     if (context.type === "vaccine" || context.type === "deworming") {
-      newValue = { ...context.value, name: value, date: date }; // Include date in newValue
+      newValue = { ...context.value, name: value, date: utcDate };
     } else if (context.type === "observations") {
-      newValue = { observations: value };
+      newValue = { ...context.value, observations: value, date: utcDate };
     }
     onSave(newValue);
   };
@@ -36,46 +42,43 @@ const EditModal = ({ open, context, onClose, onSave }) => {
       case "deworming":
         return (
           <>
-            <TextField
+            <Input
               autoFocus
-              margin="dense"
-              label={
+              mt="4"
+              placeholder={
                 context.type === "vaccine" ? "Vaccine Name" : "Deworming Type"
               }
-              type="text"
-              fullWidth
-              variant="outlined"
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />
-            <TextField
-              margin="dense"
-              label="Date"
+            <Input
+              mt="4"
+              placeholder="Date"
               type="date"
-              fullWidth
-              variant="outlined"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
             />
           </>
         );
       case "observations":
         return (
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Observations"
-            type="text"
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
+          <>
+            <Textarea
+              autoFocus
+              mt="4"
+              placeholder="Observations"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              rows={4}
+            />
+            <Input
+              mt="4"
+              placeholder="Date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </>
         );
       default:
         return null;
@@ -83,18 +86,22 @@ const EditModal = ({ open, context, onClose, onSave }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} aria-labelledby="form-dialog-title">
-      <DialogTitle id="form-dialog-title">Edit {context.type}</DialogTitle>
-      <DialogContent>{renderContent()}</DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={handleSave} color="primary">
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <Modal isOpen={open} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>Edit {context.type}</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>{renderContent()}</ModalBody>
+        <ModalFooter>
+          <Button colorScheme="blue" mr={3} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button colorScheme="blue" onClick={handleSave}>
+            Save
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 };
 

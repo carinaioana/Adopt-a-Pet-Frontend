@@ -1,9 +1,24 @@
 import { useEffect, useState } from "react";
-import { Box, Button, TextField } from "@mui/material";
+import {
+  Flex,
+  Box,
+  Heading,
+  Stack,
+  FormControl,
+  FormLabel,
+  Input,
+  InputGroup,
+  InputRightElement,
+  Button,
+  Text,
+  useColorMode,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import PasswordTooltip from "./PasswordTooltip.jsx";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
+import PasswordTooltip from "./PasswordTooltip.jsx";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +26,8 @@ const Register = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const [passwordValidations, setPasswordValidations] = useState({
     minLength: false,
@@ -19,6 +36,11 @@ const Register = () => {
     capital: false,
     match: false,
   });
+  const { colorMode, toggleColorMode } = useColorMode();
+  const bgGradient = useColorModeValue(
+    "linear(to-r, orange.100, orange.50)",
+    "linear(to-r, blue.900, blue.700)",
+  );
 
   useEffect(() => {
     setPasswordValidations({
@@ -32,6 +54,10 @@ const Register = () => {
 
   const allValidationsPassed =
     Object.values(passwordValidations).every(Boolean);
+
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleClickShowConfirmPassword = () =>
+    setShowConfirmPassword(!showConfirmPassword);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -55,7 +81,7 @@ const Register = () => {
           localStorage.setItem("userInfo", JSON.stringify(data.user)); // Save user info
           toast.success("Registration successful!");
           setTimeout(() => {
-            navigate("/", { replace: true });
+            navigate("/login", { replace: true });
           }, 1000);
         } else {
           toast.error("Registration failed. Please try again.");
@@ -70,77 +96,125 @@ const Register = () => {
       );
     }
   };
-  return (
-    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-      <ToastContainer />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        label="Name"
-        name="name"
-        autoFocus
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        label="Email"
-        name="email"
-        autoComplete="email"
-        autoFocus
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        label="Username"
-        name="username"
-        autoComplete="username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <PasswordTooltip password={password} confirmPassword={confirmPassword}>
-        <TextField
-          label="Password"
-          type="password"
-          margin="normal"
-          fullWidth
-          autoComplete="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </PasswordTooltip>
-      <PasswordTooltip password={password} confirmPassword={confirmPassword}>
-        <TextField
-          label="Confirm Password"
-          type="password"
-          margin="normal"
-          fullWidth
-          autoComplete="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-      </PasswordTooltip>
 
-      <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
-        Sign Up
-      </Button>
-      <Button
-        fullWidth
-        variant="text"
-        sx={{ mt: 1, mb: 2 }}
-        onClick={() => navigate("/login")}
+  return (
+    <Flex height="100%">
+      <Box
+        mt="2rem"
+        borderWidth={1}
+        px={8}
+        py={12}
+        rounded="md"
+        shadow="lg"
+        bg="white"
+        minW="md"
+        maxW="lg"
+        bgGradient={bgGradient}
       >
-        Already have an account? Log in
-      </Button>
-    </Box>
+        <Heading mb={6} textAlign="center">
+          Register
+        </Heading>
+        <Stack spacing="1rem">
+          <FormControl id="name" isRequired>
+            <FormLabel>Name</FormLabel>
+            <Input
+              type="text"
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </FormControl>
+          <FormControl id="email" isRequired>
+            <FormLabel>Email</FormLabel>
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </FormControl>
+          <FormControl id="username" isRequired>
+            <FormLabel>Username</FormLabel>
+            <Input
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </FormControl>
+          <PasswordTooltip
+            password={password}
+            confirmPassword={confirmPassword}
+          >
+            <FormControl id="password" isRequired>
+              <FormLabel>Password</FormLabel>
+              <InputGroup>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <InputRightElement>
+                  <Button
+                    h="1.75rem"
+                    size="sm"
+                    bg="ghost"
+                    onClick={handleClickShowPassword}
+                  >
+                    {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
+          </PasswordTooltip>
+          <PasswordTooltip
+            password={password}
+            confirmPassword={confirmPassword}
+          >
+            <FormControl id="confirmPassword" isRequired>
+              <FormLabel>Confirm Password</FormLabel>
+              <InputGroup>
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <InputRightElement>
+                  <Button
+                    h="1.75rem"
+                    size="sm"
+                    bg="ghost"
+                    onClick={handleClickShowConfirmPassword}
+                  >
+                    {showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />}
+                  </Button>
+                </InputRightElement>
+              </InputGroup>
+            </FormControl>
+          </PasswordTooltip>
+          <Button
+            colorScheme="blue"
+            variant="solid"
+            onClick={handleSubmit}
+            isFullWidth
+          >
+            Sign Up
+          </Button>
+          <Text align="center">
+            <Button
+              colorScheme="blue"
+              variant="outline"
+              onClick={() => navigate("/login")}
+            >
+              Already have an account? Log in
+            </Button>
+          </Text>
+        </Stack>
+      </Box>
+      <ToastContainer />
+    </Flex>
   );
 };
 

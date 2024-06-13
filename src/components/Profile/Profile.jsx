@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Button, Card, CardContent, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  CircularProgress,
+  Container,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import "../../styles/Profile.css";
 import "../../styles/App.css";
 import ProfileHeader from "./ProfileHeader.jsx";
@@ -11,9 +19,11 @@ const Profile = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [user, setUser] = useState(null);
   const { userDetails } = useAuth();
+
   const handleUserUpdate = (updatedUser) => {
     setUser(updatedUser);
   };
+
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -65,46 +75,48 @@ const Profile = () => {
   }
 
   return (
-    <Card
-      sx={{
-        marginTop: "5rem",
-        padding: "1.25rem",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "background.default",
-        position: "relative",
-      }}
-      className="common-container"
+    <Container
+      display="flex"
+      centerContent
+      minWidth="80vw"
+      overflow="hidden"
+      p="2rem"
+      mt="1rem"
+      borderRadius="12px"
+      border="1px solid"
+      borderColor="gray.200"
+      boxShadow="sm"
+      position="relative"
     >
-      <CardContent variant="oulined" className="common-header">
-        <ProfileHeader
-          user={user}
-          onUserUpdate={handleUserUpdate}
-          isEditMode={isEditMode}
-          setIsEditMode={setIsEditMode}
-        />
-      </CardContent>
-      <CardContent variant="outlined" className="common-details">
-        <ProfileDetails
-          user={user}
-          onUserUpdate={handleUserUpdate}
-          isEditMode={isEditMode}
-          setIsEditMode={setIsEditMode}
-        />
-      </CardContent>
+      <Box display="flex" width="100%">
+        <Box flex="1" mr="2rem">
+          <ProfileHeader
+            user={user}
+            onUserUpdate={handleUserUpdate}
+            isEditMode={isEditMode}
+            setIsEditMode={setIsEditMode}
+            width="100%"
+          />
+        </Box>
+        <Box flex="2">
+          <ProfileDetails
+            user={user}
+            onUserUpdate={handleUserUpdate}
+            isEditMode={isEditMode}
+            setIsEditMode={setIsEditMode}
+            width="100%"
+          />
+        </Box>
+      </Box>
+
       {isEditMode && (
-        <div className="save-changes-button-wrapper">
-          <Button
-            className="save-changes-button"
-            variant="contained"
-            onClick={() => setIsEditMode(false)}
-          >
+        <Box mt={4} textAlign="right">
+          <Button colorScheme="teal" onClick={() => setIsEditMode(false)}>
             Save Changes
           </Button>
-        </div>
+        </Box>
       )}
-    </Card>
+    </Container>
   );
 };
-
 export default Profile;

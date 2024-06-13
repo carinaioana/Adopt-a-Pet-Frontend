@@ -1,31 +1,38 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography,
-} from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import GooglePlacesAutocomplete, {
   geocodeByPlaceId,
   getLatLng,
 } from "react-google-places-autocomplete";
-import { useTheme } from "@mui/material/styles";
-import "../../styles/Profile.css";
-import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
+import {
+  Button,
+  Card,
+  CardBody,
+  Container,
+  FormControl,
+  FormLabel,
+  Heading,
+  IconButton,
+  Input,
+  Image,
+  Text,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Textarea,
+} from "@chakra-ui/react";
+import { EditIcon } from "@chakra-ui/icons";
 
 const ProfileHeader = ({ user, onUserUpdate }) => {
-  const theme = useTheme();
   const [selectedLocation, setSelectedLocation] = useState(
     user.userLocation.selectedLocation,
   );
   const [openModal, setOpenModal] = useState(false);
+  const [openPhotoModal, setOpenPhotoModal] = useState(false);
 
   const handleLocationChange = (value) => {
     geocodeByPlaceId(value.value.place_id)
@@ -42,168 +49,192 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
     setOpenModal(!openModal);
   };
   return (
-    <>
-      <Card sx={{ minWidth: "90vw" }}>
-        <CardContent
-          sx={{
-            position: "relative", // This makes the Box a reference point for positioning the IconButton absolutely
-            display: "inline-block", // This makes the Box fit its contents, allowing precise positioning of the IconButton
-          }}
-        >
-          <CardContent
-            component="img"
+    <Container
+      maxW="container.xl"
+      p={4}
+      mt={8}
+      borderRadius="md"
+      boxShadow="md"
+    >
+      <Card variant="outline">
+        <CardBody position="relative" display="flex" justifyContent="center">
+          <Image
             src={user.profilePhoto}
             alt="profile-photo"
-            sx={{
-              width: 250, // or any other size
-              height: 250,
-              borderRadius: "50%", // makes it circular, remove for square images
-            }}
-          />
-          <IconButton
-            sx={{
-              position: "absolute",
-              top: 0, // Adjust these values as needed to position the icon correctly
-              right: 0,
-              backgroundColor: "white", // Optional: Adds background color to the button for better visibility
-              "&:hover": {
-                backgroundColor: "white", // Maintains the background color on hover
+            boxSize="250px"
+            borderRadius="full"
+            position="relative"
+            _hover={{
+              "& .edit-icon": {
+                display: "block",
               },
             }}
-            onClick={() => {
-              // Define what happens when the button is clicked, e.g., open a modal to change the profile photo
-              console.log("Edit profile photo");
-            }}
+            onClick={() => setOpenPhotoModal(true)}
+          />
+          <IconButton
+            className="edit-icon"
+            position="absolute"
+            top="50%"
+            left="50%"
+            transform="translate(-50%, -50%)"
+            display="none"
+            onClick={() => setOpenPhotoModal(true)}
+            aria-label={"Edit Profile"}
           >
             <EditIcon color="primary" />
           </IconButton>
-        </CardContent>
-        <Typography variant="h4" gutterBottom>
+        </CardBody>
+        <Heading as="h4" size="md" mb={4}>
           {user.fullName}
-        </Typography>
-
-        <Typography variant="subtitle1">@{user.username}</Typography>
-
-        <Card className="profile-section" variant="outlined">
-          <CardContent>
-            <Typography variant="h5" component="h2" gutterBottom>
+        </Heading>
+        <Text fontSize="lg">@{user.username}</Text>
+        <Card variant="outline" className="profile-section">
+          <CardBody>
+            <Heading as="h5" size="sm" mb={4}>
               About Me
-            </Typography>
-            <Typography>{user.description}</Typography>
-            <Typography>E-mail: {user.email}</Typography>
-            <Typography>Age: {user.age.toString()}</Typography>
-            <Typography>From {user.userLocation.selectedLocation}</Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleToggleModal}
-              sx={{ mt: 2 }} // Adjust margin top as needed
-            >
+            </Heading>
+            <Text>{user.description}</Text>
+            <Text>E-mail: {user.email}</Text>
+            <Text>Age: {user.age.toString()}</Text>
+            <Text>From {user.userLocation.selectedLocation}</Text>
+            <Button colorScheme="blue" mt={4} onClick={handleToggleModal}>
               Edit details
             </Button>
-          </CardContent>
+          </CardBody>
         </Card>
       </Card>
-      <Dialog open={openModal} onClose={handleToggleModal}>
-        <DialogTitle>Edit User Details</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="fullName"
-            label="Full Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={user.fullName}
-            onChange={(e) =>
-              onUserUpdate({ ...user, fullName: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            id="username"
-            label="Username"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={user.username}
-            onChange={(e) =>
-              onUserUpdate({ ...user, username: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            id="email"
-            label="Email"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={user.email}
-            onChange={(e) => onUserUpdate({ ...user, email: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            id="age"
-            label="Age"
-            type="number"
-            fullWidth
-            variant="outlined"
-            value={user.age.toString()}
-            onChange={(e) =>
-              onUserUpdate({ ...user, age: parseInt(e.target.value, 10) })
-            }
-          />
-          <TextField
-            margin="dense"
-            id="description"
-            label="Description"
-            type="text"
-            multiline
-            rows={4}
-            fullWidth
-            variant="outlined"
-            value={user.description}
-            onChange={(e) =>
-              onUserUpdate({ ...user, description: e.target.value })
-            }
-          />
-          <GooglePlacesAutocomplete
-            apiKey={import.meta.env.VITE_GOOGLE_API_KEY}
-            selectProps={{
-              value: selectedLocation,
-              onChange: handleLocationChange,
-              styles: {
+      <Modal isOpen={openModal} onClose={handleToggleModal}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit User Details</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl mb={4}>
+              <FormLabel>Full Name</FormLabel>
+              <Input
+                id="fullName"
+                type="text"
+                value={user.fullName}
+                onChange={(e) =>
+                  onUserUpdate({ ...user, fullName: e.target.value })
+                }
+              />
+            </FormControl>
+            <FormControl mb={4}>
+              <FormLabel>Username</FormLabel>
+              <Input
+                id="username"
+                type="text"
+                value={user.username}
+                onChange={(e) =>
+                  onUserUpdate({ ...user, username: e.target.value })
+                }
+              />
+            </FormControl>
+            <FormControl mb={4}>
+              <FormLabel>Email</FormLabel>
+              <Input
+                id="email"
+                type="email"
+                value={user.email}
+                onChange={(e) =>
+                  onUserUpdate({ ...user, email: e.target.value })
+                }
+              />
+            </FormControl>
+            <FormControl mb={4}>
+              <FormLabel>Age</FormLabel>
+              <Input
+                id="age"
+                type="number"
+                value={user.age.toString()}
+                onChange={(e) =>
+                  onUserUpdate({ ...user, age: parseInt(e.target.value, 10) })
+                }
+              />
+            </FormControl>
+            <FormControl mb={4}>
+              <FormLabel>Description</FormLabel>
+              <Textarea
+                id="description"
+                value={user.description}
+                onChange={(e) =>
+                  onUserUpdate({ ...user, description: e.target.value })
+                }
+              />
+            </FormControl>
+            <GooglePlacesAutocomplete
+              apiKey={import.meta.env.VITE_GOOGLE_API_KEY}
+              selectProps={{
+                value: selectedLocation,
+                onChange: handleLocationChange,
+              }}
+              styles={{
+                container: (provided) => ({
+                  ...provided.container,
+                  border: "1px solid #ccc",
+                  borderRadius: "5px",
+                  padding: "10px",
+                  boxShadow: "0px 0px 10px 0px rgba(0, 0, 0, 0.1)",
+                }),
                 input: (provided) => ({
-                  ...provided,
-                  color: theme.palette.text.primary,
+                  ...provided.input,
+                  padding: "10px",
+                  fontSize: "16px",
+                  borderRadius: "5px",
+                  border: "1px solid #ccc",
                 }),
-                option: (provided) => ({
-                  ...provided,
-                  color: theme.palette.text.primary,
+                option: (provided, state) => ({
+                  ...provided.option,
+                  color: "black",
+                  fontSize: "16px",
+                  padding: "10px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
                 }),
-                singleValue: (provided) => ({
-                  ...provided,
-                  color: theme.palette.text.primary,
-                }),
-              },
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleToggleModal}>Cancel</Button>
-          <Button
-            onClick={() => {
-              handleToggleModal();
-              console.log("Save changes");
-              // Implement save logic here
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+              }}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={handleToggleModal}>Cancel</Button>
+            <Button
+              colorScheme="blue"
+              onClick={() => {
+                handleToggleModal();
+                console.log("Save changes");
+              }}
+            >
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={openPhotoModal} onClose={() => setOpenPhotoModal(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Profile Photo</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Image src={user.profilePhoto} alt="profile-photo" boxSize="100%" />
+            <Input
+              type="file"
+              accept="image/*"
+              display="none"
+              id="file-input"
+              onChange={(e) => console.log(e.target.files[0])}
+            />
+          </ModalBody>
+          <ModalFooter display="flex" justifyContent="center">
+            <Button
+              colorScheme="blue"
+              onClick={() => document.getElementById("file-input").click()}
+            >
+              Change Photo
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Container>
   );
 };
 

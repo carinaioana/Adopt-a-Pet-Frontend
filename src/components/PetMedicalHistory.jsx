@@ -1,36 +1,49 @@
 import React, { useEffect, useState } from "react";
+
+import axios from "axios";
+import EditModal from "./EditModal";
+import { useLocation, useParams } from "react-router-dom";
+import { useAuth } from "./context/AuthContext.jsx";
+import "../styles/PetProfile.css";
+import {
+  ChatBubble,
+  DeleteOutlined,
+  EditOutlined,
+  InfoOutlined,
+  NoteAddOutlined,
+} from "@mui/icons-material";
+import Chatbot from "./ChatBot.jsx";
 import {
   Avatar,
   Box,
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
+  IconButton,
   List,
   ListItem,
-  ListItemText,
-  TextField,
+  VStack,
   Tooltip,
-  Typography,
-} from "@mui/material";
-import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
-import "../styles/PetProfile.css";
-import "../styles/App.css";
-import NoteAddIcon from "@mui/icons-material/NoteAdd"; // Add this import at the beginning of your file
-import InfoIcon from "@mui/icons-material/Info";
-import axios from "axios";
-import { useLocation, useParams } from "react-router-dom";
-import { useAuth } from "./context/AuthContext.jsx";
-
+  Button,
+  HStack,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  ModalHeader,
+  ModalContent,
+  ModalOverlay,
+  Modal,
+  FormControl,
+  FormLabel,
+  Input,
+  Text,
+  Select,
+  Container,
+} from "@chakra-ui/react";
+import { DeleteIcon, EditIcon, InfoIcon, AddIcon } from "@chakra-ui/icons";
 const PetDetailsPage = () => {
   const { petId } = useParams();
   const location = useLocation();
   const { userDetails } = useAuth();
+  const [isChatBotOpen, setIsChatBotOpen] = useState(false);
   const [selectedPet, setSelectedPet] = useState(
     location.state.selectedPet || null,
   );
@@ -43,6 +56,21 @@ const PetDetailsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVaccineModalOpen, setIsVaccineModalOpen] = useState(false);
   const [isDewormingModalOpen, setIsDewormingModalOpen] = useState(false);
+  const vaccineOptions = {
+    dog: [
+      { value: "Rabies", label: "Rabies" },
+      { value: "DHPP", label: "DHPP" },
+      { value: "Leptospirosis", label: "Leptospirosis" },
+      { value: "Bordetella", label: "Bordetella" },
+      { value: "Lyme", label: "Lyme" },
+    ],
+    cat: [
+      { value: "Rabies", label: "Rabies" },
+      { value: "FVRCP", label: "FVRCP" },
+      { value: "FeLV", label: "FeLV" },
+      { value: "FIP", label: "FIP" },
+    ],
+  };
   const [observationData, setObservationData] = useState({
     text: "",
     date: new Date(),
@@ -55,13 +83,6 @@ const PetDetailsPage = () => {
     type: "",
     date: new Date(),
   });
-
-  const handleSaveField = (field, value) => {
-    // Update logic for selectedPet based on field and value
-    console.log(`Saving ${field} with value ${value}`);
-    // Here you would typically update the state or make an API call to save the updated value
-    setSelectedPet((prev) => ({ ...prev, [field]: value }));
-  };
 
   const handleAddNew = (type) => {
     if (type === "observations") {
@@ -78,6 +99,94 @@ const PetDetailsPage = () => {
     setEditModalOpen(true);
   };
 
+  const handleSaveEdit = async (newValue) => {
+    const authToken = localStorage.getItem("authToken");
+    const headers = {
+      Authorization: `Bearer ${authToken}`,
+    };
+
+    try {
+      let apiUrl = "";
+      let requestBody = {};
+
+      if (editContext.type === "vaccine") {
+        apiUrl = `https://localhost:7141/api/v1/Vaccination/${newValue.vaccinationId}`;
+        requestBody = {
+          vaccinationId: newValue.vaccinationId,
+          date: newValue.date,
+          vaccineName: newValue.name,
+          animalId: petId,
+        };
+      } else if (editContext.type === "deworming") {
+        apiUrl = `https://localhost:7141/api/v1/Deworming/${newValue.dewormingId}`;
+        requestBody = {
+          dewormingId: newValue.dewormingId,
+          date: newValue.date,
+          dewormingType: newValue.name,
+          animalId: selectedPet.animalId,
+        };
+      } else {
+        apiUrl = `https://localhost:7141/api/v1/Observation/${newValue.observationId}`;
+        requestBody = {
+          observationId: newValue.observationId,
+          date: newValue.date,
+          observationDescription: newValue.description, // Ensure this matches the expected field name
+          animalId: selectedPet.animalId,
+        };
+        console.log(apiUrl);
+      }
+
+      await axios.put(apiUrl, requestBody, { headers });
+      console.log(`${editContext.type} updated successfully`);
+      setEditModalOpen(false);
+      window.location.reload();
+    } catch (error) {
+      console.error(`Error updating ${editContext.type}:`, error);
+    }
+  };
+  const handleDelete = async (type, id) => {
+    const authToken = localStorage.getItem("authToken");
+    const headers = {
+      Authorization: `Bearer ${authToken}`,
+    };
+
+    try {
+      let apiUrl = "";
+
+      if (type === "vaccine") {
+        apiUrl = `https://localhost:7141/api/v1/Vaccination/${id.vaccinationId}`;
+      } else if (type === "deworming") {
+        apiUrl = `https://localhost:7141/api/v1/Deworming/${id.dewormingId}`;
+      } else if (type === "observation") {
+        apiUrl = `https://localhost:7141/api/v1/Observation/${id.observationId}`;
+      }
+
+      await axios.delete(apiUrl, { headers });
+      console.log(`${type} deleted successfully`);
+      window.location.reload();
+    } catch (error) {
+      console.error(`Error deleting ${type}:`, error);
+    }
+  };
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteContext, setDeleteContext] = useState({
+    type: "",
+    id: null,
+  });
+
+  const handleOpenDeleteModal = (type, id) => {
+    setDeleteContext({ type, id });
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    handleDelete(deleteContext.type, deleteContext.id);
+    setDeleteModalOpen(false);
+  };
+
+  const [forceUpdate, setForceUpdate] = useState(false); // Add this state to your component
+
   useEffect(() => {
     const fetchPetDetails = async () => {
       try {
@@ -85,17 +194,31 @@ const PetDetailsPage = () => {
         const headers = {
           Authorization: `Bearer ${authToken}`,
         };
-        console.log(selectedPet.animalId);
+        const petDetailsResponse = await axios.get(
+          `https://localhost:7141/api/v1/Animals/${petId}`,
+          { headers },
+        );
+
+        const petDetails = petDetailsResponse.data;
+        console.log(petDetails);
+        setSelectedPet((prevState) => ({
+          ...prevState,
+          animalName: petDetails.animalName,
+          animalType: petDetails.animalType,
+          animalAge: petDetails.animalAge,
+          animalBreed: petDetails.animalBreed,
+          animalSex: petDetails.animalSex,
+        }));
         const vaccinationsResponse = await axios.get(
-          `https://localhost:7141/api/v1/Vaccination/AllByAnimal/${selectedPet.animalId}`,
+          `https://localhost:7141/api/v1/Vaccination/AllByAnimal/${petId}`,
           { headers },
         );
         const observationsResponse = await axios.get(
-          `https://localhost:7141/api/v1/Observation/AllByAnimal/${selectedPet.animalId}`,
+          `https://localhost:7141/api/v1/Observation/AllByAnimal/${petId}`,
           { headers },
         );
         const dewormingResponse = await axios.get(
-          `https://localhost:7141/api/v1/Deworming/AllByAnimal/${selectedPet.animalId}`,
+          `https://localhost:7141/api/v1/Deworming/AllByAnimal/${petId}`,
           { headers },
         );
         console.log(
@@ -104,36 +227,41 @@ const PetDetailsPage = () => {
           dewormingResponse.data.dewormings,
         );
 
-        const vaccines = vaccinationsResponse.data.vaccinations.map(
-          (vaccine) => ({
-            name: vaccine.vaccineName,
-            date: vaccine.date,
-          }),
-        );
+        const vaccines = vaccinationsResponse.data.vaccinations
+          ? vaccinationsResponse.data.vaccinations.map((vaccine) => ({
+              vaccinationId: vaccine.vaccinationId,
+              name: vaccine.vaccineName,
+              date: vaccine.date,
+            }))
+          : [];
 
-        const observations = observationsResponse.data.observations.map(
-          (observation) => ({
-            description: observation.observationDescription,
-            date: observation.date,
-          }),
-        );
+        const observations = observationsResponse.data.observations
+          ? observationsResponse.data.observations.map((observation) => ({
+              observationId: observation.observationId,
+              description: observation.observationDescription,
+              date: observation.date,
+            }))
+          : [];
 
-        const deworming = dewormingResponse.data.dewormings.map((deworm) => ({
-          type: deworm.dewormingType,
-          date: deworm.date,
-        }));
+        const deworming = dewormingResponse.data.dewormings
+          ? dewormingResponse.data.dewormings.map((deworm) => ({
+              dewormingId: deworm.dewormingId,
+              type: deworm.dewormingType,
+              date: deworm.date,
+            }))
+          : [];
 
         console.log(deworming);
 
-        const petDetails = {
-          ...selectedPet, // Spread the existing selectedPet object to keep all its properties
-          vaccines,
-          deworming,
-          observations,
-        };
-        console.log(petDetails);
+        setSelectedPet((prevState) => ({
+          ...prevState,
+          vaccines: [...vaccines],
+          deworming: [...deworming],
+          observations: [...observations],
+        }));
 
-        setSelectedPet(petDetails);
+        // Toggle the forceUpdate state to force a re-render
+        setForceUpdate((prev) => !prev);
       } catch (error) {
         console.error("Failed to fetch pet details:", error);
         // Handle errors appropriately
@@ -143,8 +271,7 @@ const PetDetailsPage = () => {
     if (selectedPet) {
       fetchPetDetails();
     }
-  }, []);
-
+  }, [location, petId]);
   const handleSubmitObservation = async () => {
     const authToken = localStorage.getItem("authToken");
     try {
@@ -217,382 +344,443 @@ const PetDetailsPage = () => {
   };
 
   return (
-    <Card sx={{ margin: "2rem", padding: "1.25rem" }}>
-      <CardContent
-        variant="outlined"
-        sx={{
-          marginTop: "5rem",
-          padding: "1.25rem",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-        }}
+    <Container
+      display="flex"
+      flexDirection={{ base: "column", md: "row" }}
+      centerContent
+      minWidth="80vw"
+      overflow="hidden"
+      p="2rem"
+      mt="1rem"
+      borderRadius="12px"
+      border="1px solid"
+      borderColor="gray.200"
+      boxShadow="sm"
+      position="relative"
+    >
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        position="relative"
         className="pet-details-container"
+        width={{ base: "100%", md: "40%" }}
+        mb={{ base: "2rem", md: "0" }}
       >
-        <CardContent className="pet-details-header">
+        <Box className="pet-details-header">
           <Avatar
-            className="pet-photo"
             src={selectedPet.profilePhoto}
-            alt={selectedPet.animalName}
-            sx={{ width: 90, height: 90, mb: 2 }}
+            name={selectedPet.animalName}
+            size="xl"
+            mb="2"
           />
-          <Typography
-            className="pet-info"
-            variant="h5"
-            component="h2"
-            gutterBottom
-          >
+          <Text className="pet-info" fontSize="xl" fontWeight="bold" mb="4">
             {selectedPet.animalName}&apos;s Medical Card
-          </Typography>
-          <Box sx={{ width: "100%" }}>
-            <Typography variant="h6" gutterBottom>
+          </Text>
+          <Box width="100%" mt="2">
+            <Text fontSize="lg" fontWeight="semibold" mb="2">
               Owner Details:
-            </Typography>
-            <List className="pet-info">
+            </Text>
+            <List spacing={2}>
               <ListItem>
-                <ListItemText primary="Owner" secondary={userDetails.name} />
+                <Text fontWeight="bold">Owner:</Text> {userDetails.name}
               </ListItem>
             </List>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="h6" gutterBottom>
+            <Divider my="4" />
+            <Text fontSize="lg" fontWeight="semibold" mb="2">
               Animal Details:
-            </Typography>
-            <List className="pet-info">
+            </Text>
+            <List spacing={2}>
               <ListItem>
-                <ListItemText
-                  primary="Species"
-                  secondary={selectedPet.animalType}
-                />
+                <Text fontWeight="bold">Species:</Text> {selectedPet.animalType}
               </ListItem>
-
               <ListItem>
-                <ListItemText
-                  primary="Age"
-                  secondary={`${selectedPet.animalAge} years`}
-                />
+                <Text fontWeight="bold">Breed:</Text> {selectedPet.animalBreed}
+              </ListItem>
+              <ListItem>
+                <Text fontWeight="bold">Sex:</Text>{" "}
+                {selectedPet.animalSex.charAt(0).toUpperCase() +
+                  selectedPet.animalSex.slice(1)}
+              </ListItem>
+              <ListItem>
+                <Text fontWeight="bold">Age:</Text>{" "}
+                {`${selectedPet.animalAge} years`}
               </ListItem>
             </List>
           </Box>
-        </CardContent>
-        <Divider />
-
-        <CardContent
-          className="pet-details"
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
+        </Box>
+      </Box>
+      <Divider orientation="vertical" display={{ base: "none", md: "block" }} />
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        position="relative"
+        justifyContent="center"
+        width={{ base: "100%", md: "60%" }}
+      >
+        <VStack align="center" spacing={4}>
           {/* Vaccines Section */}
-          <Typography variant="subtitle1" gutterBottom>
-            Vaccines
+          <HStack align="center" spacing={2}>
+            <Text fontSize="lg" fontWeight="semibold">
+              Vaccines
+            </Text>
             <Tooltip
-              title="Vaccines are a critical piece of information that tells us what diseases we're protecting our pet against."
-              arrow
+              label="Vaccines are a critical piece of information that tells us what diseases we're protecting our pet against."
+              hasArrow
+              placement="bottom"
             >
-              <IconButton size="small">
-                <InfoIcon fontSize="inherit" />
-              </IconButton>
+              <IconButton
+                icon={<InfoIcon />}
+                size="sm"
+                variant="ghost"
+                aria-label={"Vaccine tooltip"}
+              />
             </Tooltip>
-          </Typography>
+          </HStack>
+          <Button
+            leftIcon={<AddIcon />}
+            colorScheme="blue"
+            onClick={() => handleAddNew("vaccine")}
+            alignSelf="center"
+          >
+            Add Vaccine
+          </Button>
           {selectedPet.vaccines && selectedPet.vaccines.length > 0 ? (
             selectedPet.vaccines.map((vaccine, index) => (
-              <Box
-                className="pet-section"
-                key={index}
-                sx={{ display: "flex", alignItems: "center", gap: 1 }}
-              >
-                <Typography variant="body2" sx={{ pl: 2 }}>
+              <HStack key={index} spacing={4} w="100%">
+                <Text pl={2} flexGrow={1}>
                   • {vaccine.name}, Date:{" "}
                   {new Date(vaccine.date).toLocaleDateString("en-GB", {
                     year: "numeric",
                     month: "2-digit",
                     day: "2-digit",
                   })}
-                </Typography>
+                </Text>
                 <IconButton
-                  size="small"
+                  icon={<EditIcon />}
+                  size="sm"
                   onClick={() =>
                     handleEdit("vaccine", index, selectedPet.vaccines[index])
                   }
-                >
-                  <EditIcon fontSize="inherit" />
-                </IconButton>
-                {/* Add Create Button for Vaccines */}
+                  aria-label={"Edit Vaccine"}
+                />
                 <IconButton
-                  onClick={() => {
-                    handleAddNew("vaccine");
-                  }}
-                >
-                  <NoteAddIcon />
-                </IconButton>
-              </Box>
+                  icon={<DeleteIcon />}
+                  size="sm"
+                  onClick={() =>
+                    handleOpenDeleteModal(
+                      "vaccine",
+                      selectedPet.vaccines[index],
+                    )
+                  }
+                  aria-label={"Delete Vaccine"}
+                />
+              </HStack>
             ))
           ) : (
-            <Box>
-              <Typography variant="body2">N/A</Typography>
-              <IconButton
-                onClick={() => {
-                  handleAddNew("vaccine");
-                }}
-              >
-                <NoteAddIcon />
-              </IconButton>
-            </Box>
+            <Text>N/A</Text>
           )}
-
-          <Typography variant="subtitle1" gutterBottom>
-            Dewormings
+        </VStack>
+        <Divider my="4" />
+        {/* Dewormings Section */}
+        <VStack align="center" spacing={4}>
+          <HStack spacing={2} alignItems="center">
+            <Text fontSize="lg" fontWeight="semibold">
+              Dewormings
+            </Text>
             <Tooltip
-              title="Dewormings are a reminder of the ongoing battle against parasites, ensuring the pet remains healthy and happy."
-              arrow
+              label="Dewormings are a reminder of the ongoing battle against parasites, ensuring the pet remains healthy and happy."
+              hasArrow
+              placement="bottom"
             >
-              <IconButton size="small">
-                <InfoIcon fontSize="inherit" />
-              </IconButton>
+              <Box ml={2}>
+                <InfoIcon boxSize={4} />
+              </Box>
             </Tooltip>
-          </Typography>
+          </HStack>
+          <Button
+            leftIcon={<AddIcon />}
+            colorScheme="blue"
+            onClick={() => handleAddNew("deworming")}
+          >
+            Add Deworming
+          </Button>
           {selectedPet.deworming && selectedPet.deworming.length > 0 ? (
             selectedPet.deworming.map((deworming, index) => (
-              <Box
-                className="pet-section"
-                key={index}
-                sx={{ display: "flex", alignItems: "center", gap: 1 }}
-              >
-                <Typography variant="body2" sx={{ pl: 2 }}>
+              <HStack key={index} spacing={4} w="100%">
+                <Text pl={2} flexGrow={1}>
                   • {deworming.type}, Date:{" "}
                   {new Date(deworming.date).toLocaleDateString("en-GB", {
                     year: "numeric",
                     month: "2-digit",
                     day: "2-digit",
                   })}
-                </Typography>
+                </Text>
                 <IconButton
-                  size="small"
+                  icon={<EditIcon />}
+                  size="sm"
                   onClick={() =>
                     handleEdit("deworming", index, selectedPet.deworming[index])
                   }
-                >
-                  <EditIcon fontSize="inherit" />
-                </IconButton>
+                  aria-label="Edit deworming"
+                />
                 <IconButton
-                  onClick={() => {
-                    handleAddNew("deworming");
-                  }}
-                >
-                  <NoteAddIcon />
-                </IconButton>
-              </Box>
+                  icon={<DeleteIcon />}
+                  size="sm"
+                  onClick={() =>
+                    handleOpenDeleteModal(
+                      "deworming",
+                      selectedPet.deworming[index],
+                    )
+                  }
+                  aria-label="Delete deworming"
+                />
+              </HStack>
             ))
           ) : (
-            <Box>
-              <Typography variant="body2">N/A</Typography>
-              <IconButton
-                onClick={() => {
-                  handleAddNew("deworming");
-                }}
-              >
-                <NoteAddIcon />
-              </IconButton>
-            </Box>
+            <Text>N/A</Text>
           )}
-          {/* Observations Section */}
-          <Divider />
-          <Typography variant="subtitle1" gutterBottom>
-            Observations
+        </VStack>
+
+        {/* Observations Section */}
+        <Divider my="4" />
+        <VStack align="center" spacing={4}>
+          <HStack spacing={2} alignItems="center">
+            <Text fontSize="lg" fontWeight="semibold">
+              Observations
+            </Text>
             <Tooltip
-              title="Observations are a more personal space, where anything out of the ordinary is noted for future reference. Whether it's a change in appetite, a new playful habit, or a concern that needs veterinary attention, this diary holds the nuanced details of the pet's life."
-              arrow
+              label="Observations are a more personal space, where anything out of the ordinary is noted for future reference. Whether it's a change in appetite, a new playful habit, or a concern that needs veterinary attention, this diary holds the nuanced details of the pet's life."
+              hasArrow
+              placement="bottom"
             >
-              <IconButton size="small">
-                <InfoIcon fontSize="inherit" />
-              </IconButton>
+              <Box ml={2}>
+                <InfoIcon boxSize={4} />
+              </Box>
             </Tooltip>
-          </Typography>
+          </HStack>
+          <Button
+            leftIcon={<AddIcon />}
+            colorScheme="blue"
+            onClick={() => handleAddNew("observations")}
+          >
+            Add Observation
+          </Button>
           {selectedPet.observations && selectedPet.observations.length > 0 ? (
             selectedPet.observations.map((observation, index) => (
-              <Box
-                key={index}
-                className="pet-section"
-                sx={{ display: "flex", alignItems: "center", gap: 1 }}
-              >
-                <Typography variant="body2" sx={{ pl: 2 }}>
+              <HStack key={index} spacing={4} w="100%">
+                <Text pl={2} flexGrow={1}>
                   • {observation.description}, Date:{" "}
-                  {new Date(observation.date).toLocaleDateString("en-GB", {
+                  {new Date(observation.date).toLocaleString("en-GB", {
                     year: "numeric",
                     month: "2-digit",
                     day: "2-digit",
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
-                </Typography>
+                </Text>
                 <IconButton
-                  size="small"
-                  onClick={() => handleEdit("observations", index, observation)}
-                >
-                  <EditIcon fontSize="inherit" />
-                </IconButton>
+                  icon={<EditIcon />}
+                  size="sm"
+                  onClick={() =>
+                    handleEdit(
+                      "observations",
+                      index,
+                      selectedPet.observations[index],
+                    )
+                  }
+                  aria-label="Edit observation"
+                />
                 <IconButton
-                  onClick={() => {
-                    handleAddNew("observations");
-                  }}
-                >
-                  <NoteAddIcon />
-                </IconButton>
-              </Box>
+                  icon={<DeleteIcon />}
+                  size="sm"
+                  onClick={() =>
+                    handleOpenDeleteModal(
+                      "observation",
+                      selectedPet.observations[index],
+                    )
+                  }
+                  aria-label="Delete observation"
+                />
+              </HStack>
             ))
           ) : (
-            <Box>
-              <Typography variant="body2">N/A</Typography>
-              <IconButton
-                onClick={() => {
-                  handleAddNew("observations");
-                }}
-              >
-                <NoteAddIcon />
-              </IconButton>
-            </Box>
+            <Text>N/A</Text>
           )}
-          {/* Add Create Button for Observations */}
-        </CardContent>
-      </CardContent>
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <DialogTitle>Add New Observation</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="observation-text"
-            label="Observation Text"
-            type="text"
-            fullWidth
-            value={observationData.text}
-            onChange={(e) =>
-              setObservationData({ ...observationData, text: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            id="observation-date"
-            label="Date"
-            type="date"
-            fullWidth
-            value={observationData.date.toISOString().split("T")[0]}
-            onChange={(e) =>
-              setObservationData({
-                ...observationData,
-                date: new Date(e.target.value),
-              })
-            }
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsModalOpen(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmitObservation} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        open={isVaccineModalOpen}
+        </VStack>
+      </Box>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add New Observation</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel htmlFor="observation-text">Observation Text</FormLabel>
+              <Input
+                id="observation-text"
+                type="text"
+                value={observationData.text}
+                onChange={(e) =>
+                  setObservationData({
+                    ...observationData,
+                    text: e.target.value,
+                  })
+                }
+              />
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel htmlFor="observation-date">Date</FormLabel>
+              <Input
+                id="observation-date"
+                type="date"
+                value={observationData.date.toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setObservationData({
+                    ...observationData,
+                    date: new Date(e.target.value),
+                  })
+                }
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="ghost" onClick={handleSubmitObservation}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <EditModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSave={handleSaveEdit}
+        context={editContext}
+      />
+      <Modal
+        isOpen={isVaccineModalOpen}
         onClose={() => setIsVaccineModalOpen(false)}
       >
-        <DialogTitle>Add New Vaccine</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="vaccine-name"
-            label="Vaccine Name"
-            type="text"
-            fullWidth
-            value={newVaccineData.name}
-            onChange={(e) =>
-              setNewVaccineData({ ...newVaccineData, name: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            id="vaccine-date"
-            label="Date"
-            type="date"
-            fullWidth
-            value={newVaccineData.date.toISOString().split("T")[0]}
-            onChange={(e) =>
-              setNewVaccineData({
-                ...newVaccineData,
-                date: new Date(e.target.value),
-              })
-            }
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsVaccineModalOpen(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmitVaccine} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        open={isDewormingModalOpen}
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add New Vaccine</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel htmlFor="vaccine-name">Vaccine Name</FormLabel>
+              <Select
+                placeholder="Select Vaccine"
+                isSearchable
+                options={
+                  selectedPet.animalType === "dog"
+                    ? vaccineOptions.dog.map((option) => ({
+                        label: option,
+                        value: option,
+                      }))
+                    : vaccineOptions.cat.map((option) => ({
+                        label: option,
+                        value: option,
+                      }))
+                }
+                value={newVaccineData.name}
+                onChange={(option) =>
+                  setNewVaccineData({
+                    ...newVaccineData,
+                    name: option.value,
+                  })
+                }
+              />
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel htmlFor="vaccine-date">Date</FormLabel>
+              <Input
+                id="vaccine-date"
+                type="date"
+                value={newVaccineData.date.toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setNewVaccineData({
+                    ...newVaccineData,
+                    date: new Date(e.target.value),
+                  })
+                }
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => setIsVaccineModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="ghost" onClick={handleSubmitVaccine}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal
+        isOpen={isDewormingModalOpen}
         onClose={() => setIsDewormingModalOpen(false)}
       >
-        <DialogTitle>Add New Deworming</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="deworming-type"
-            label="Deworming Type"
-            type="text"
-            fullWidth
-            value={newDewormingData.type}
-            onChange={(e) =>
-              setNewDewormingData({ ...newDewormingData, type: e.target.value })
-            }
-          />
-          <TextField
-            margin="dense"
-            id="deworming-date"
-            label="Date"
-            type="date"
-            fullWidth
-            value={newDewormingData.date.toISOString().split("T")[0]}
-            onChange={(e) =>
-              setNewDewormingData({
-                ...newDewormingData,
-                date: new Date(e.target.value),
-              })
-            }
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setIsDewormingModalOpen(false)}
-            color="primary"
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSubmitDeworming} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Card>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add New Deworming</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel htmlFor="deworming-type">Deworming Type</FormLabel>
+              <Input
+                id="deworming-type"
+                type="text"
+                value={newDewormingData.type}
+                onChange={(e) =>
+                  setNewDewormingData({
+                    ...newDewormingData,
+                    type: e.target.value,
+                  })
+                }
+              />
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel htmlFor="deworming-date">Date</FormLabel>
+              <Input
+                id="deworming-date"
+                type="date"
+                value={newDewormingData.date.toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setNewDewormingData({
+                    ...newDewormingData,
+                    date: new Date(e.target.value),
+                  })
+                }
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              colorScheme="blue"
+              mr={3}
+              onClick={() => setIsDewormingModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="ghost" onClick={handleSubmitDeworming}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Container>
   );
 };
 

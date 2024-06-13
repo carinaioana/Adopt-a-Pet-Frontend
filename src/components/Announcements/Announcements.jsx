@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Box, List, TextField, Typography } from "@mui/material";
-import SortIcon from "@mui/icons-material/Sort";
-import IconButton from "@mui/material/IconButton";
 import AnnouncementModal from "./AnnouncementModal.jsx";
 import axios from "axios";
 import Announcement from "./Announcement.jsx";
-import AddIcon from "@mui/icons-material/Add";
 import { useAuth } from "../context/AuthContext.jsx";
+import "../../styles/Announcements.css";
+import { Box, Container, IconButton, Input } from "@chakra-ui/react";
+import { BiSortUp, BiSortDown } from "react-icons/bi";
+import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -67,7 +67,7 @@ const AnnouncementList = () => {
 
   const handleCreateAnnouncement = async (formData) => {
     const token = localStorage.getItem("authToken");
-
+    console.log(formData);
     try {
       const response = await axios.post(
         "https://localhost:7141/api/v1/Announc",
@@ -75,7 +75,7 @@ const AnnouncementList = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data", // This is important for files
+            "Content-Type": "multipart/form-data",
           },
         },
       );
@@ -135,67 +135,60 @@ const AnnouncementList = () => {
     );
   };
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "75vh",
-        width: "90vw",
-        overflow: "auto",
-        padding: "2rem",
-        borderRadius: "12px",
-        border: "1px solid #e0e0e0",
-        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-        position: "relative",
-        "@media (max-width: 600px)": {
-          width: "100vw",
-          padding: "1rem",
-        },
-      }}
+    <Container
+      display="flex"
+      flexDirection="column"
+      minWidth="80vw"
+      overflow="hidden"
+      p="2rem"
+      mt="1rem"
+      borderRadius="12px"
+      border="1px solid"
+      borderColor="gray.200"
+      boxShadow="sm"
+      position="relative"
     >
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{
-          position: "sticky",
-          top: 0,
-          backgroundColor: "inherit",
-          zIndex: 1,
-          paddingTop: "16px",
-          fontWeight: "bold",
-          fontSize: "1.75rem", // Slightly larger for emphasis
-        }}
-      >
-        Announcements
-      </Typography>
       <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={6}
       >
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box
+          as="h1"
+          fontSize="3xl"
+          fontWeight="extrabold"
+          position="sticky"
+          top={0}
+          zIndex={1}
+          py={4}
+        >
+          Announcements
+        </Box>
+        <Box display="flex" alignItems="center">
           <IconButton
+            aria-label="Sort Announcements"
+            icon={isSortedAsc ? <BiSortUp /> : <BiSortDown />}
             onClick={handleSort}
-            sx={{ mr: 1, color: "primary.main" }}
-          >
-            <SortIcon />
-          </IconButton>
-          <TextField
-            size="small"
-            label="Search Announcements"
-            variant="outlined"
-            sx={{ mr: 1, width: "250px" }} // Ensure adequate width for ease of typing
+            mr={4}
+            colorScheme="blue"
+          />
+          <Input
+            size="md"
+            placeholder="Search Announcements"
             onChange={handleSearchChange}
+            mr={4}
+            borderColor="blue.500"
+          />
+          <IconButton
+            aria-label="Add Announcement"
+            icon={<AddIcon />}
+            onClick={handleOpenModal}
+            colorScheme="blue"
           />
         </Box>
-        <IconButton onClick={handleOpenModal} sx={{ color: "primary.main" }}>
-          <AddIcon />
-        </IconButton>
       </Box>
-
-      <List sx={{ overflow: "auto", mt: 2 }}>
+      <Box overflowY="auto" maxH="70vh" p={4} borderRadius="md" boxShadow="md">
         {Array.isArray(announcements) && announcements.length > 0 ? (
           announcements.map((announcement) => (
             <Announcement
@@ -216,17 +209,18 @@ const AnnouncementList = () => {
             />
           ))
         ) : (
-          <Typography variant="body1" sx={{ textAlign: "center", mt: 4 }}>
+          <Box textAlign="center" mt={8} color="gray.500">
             No announcements found.
-          </Typography>
+          </Box>
         )}
-      </List>
+      </Box>
+
       <AnnouncementModal
         open={modalOpen}
         onClose={handleCloseModal}
         onCreate={handleCreateAnnouncement}
       />
-    </Box>
+    </Container>
   );
 };
 

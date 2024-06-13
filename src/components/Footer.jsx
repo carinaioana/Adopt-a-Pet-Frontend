@@ -1,11 +1,11 @@
 import { memo } from "react";
-import { TableFooter } from "@mui/material";
+import { Box, Text } from "@chakra-ui/react";
 
 const Footer = memo(function Footer() {
   return (
-    <TableFooter>
-      <p>&copy; Adopt A Friend {new Date().getFullYear()}</p>
-    </TableFooter>
+    <Box as="footer" width="full" py="4" textAlign="center" flexShrink={0}>
+      <Text>&copy; Adopt A Friend {new Date().getFullYear()}</Text>
+    </Box>
   );
 });
 
