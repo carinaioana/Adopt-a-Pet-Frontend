@@ -2,83 +2,59 @@ import React, { useState } from "react";
 import axios from "axios";
 import {
   Box,
-  Button,
-  TextField,
-  Typography,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  CircularProgress,
-} from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import { styled } from "@mui/system";
+  HStack,
+  IconButton,
+  Input,
+  Spinner,
+  VStack,
+  Text,
+  Tooltip,
+} from "@chakra-ui/react";
+import { ArrowForwardIcon } from "@chakra-ui/icons";
+const ChatContainer = ({ children }) => (
+  <Box
+    bg="white"
+    w="100%"
+    maxW="md"
+    mx="auto"
+    boxShadow="md"
+    borderRadius="lg"
+    overflow="hidden"
+  >
+    {children}
+  </Box>
+);
 
-const ChatContainer = styled(Box)`
-  padding: 2rem;
-  max-width: 600px;
-  margin: 0 auto;
-`;
+const ChatWindow = ({ children }) => (
+  <VStack
+    spacing={4}
+    align="stretch"
+    h="60vh"
+    p={4}
+    overflowY="auto"
+    bg="gray.50"
+  >
+    {children}
+  </VStack>
+);
 
-const ChatWindow = styled(Paper)`
-  padding: 2rem;
-  margin-bottom: 2rem;
-  height: 60vh;
-  overflow: auto;
-  position: relative;
-  background-color: #f5f5f5;
-  border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;
+const ChatMessage = ({ isSent, children }) => (
+  <HStack justifyContent={isSent ? "flex-end" : "flex-start"}>
+    <Box
+      maxW="80%"
+      bg={isSent ? "blue.100" : "green.100"}
+      p={3}
+      borderRadius="lg"
+    >
+      {children}
+    </Box>
+  </HStack>
+);
 
-const ChatTitle = styled(Typography)`
-  margin-bottom: 2rem;
-  font-weight: bold;
-  color: #333;
-`;
-
-const ChatList = styled(List)`
-  max-height: 100%;
-  overflow-y: auto;
-`;
-
-const ChatMessage = styled(ListItem)`
-  margin-bottom: 1rem;
-  text-align: ${(props) => (props.sender === "user" ? "right" : "left")};
-  background-color: ${(props) =>
-    props.sender === "user" ? "#e0f7fa" : "#f1f8e9"};
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  word-wrap: break-word;
-  max-width: 80%;
-  align-self: ${(props) =>
-    props.sender === "user" ? "flex-end" : "flex-start"};
-`;
-
-const InputContainer = styled(Box)`
-  display: flex;
-  align-items: center;
-`;
-
-const ChatInput = styled(TextField)`
-  flex-grow: 1;
-  margin-right: 1rem;
-`;
-
-const SendButton = styled(Button)`
-  && {
-    background-color: #4caf50;
-    color: #fff;
-    &:hover {
-      background-color: #43a047;
-    }
-  }
-`;
-const Chatbot = () => {
+const Chatbot = (selectedPet) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-
   const sendMessage = async () => {
     if (!input.trim()) return; // Prevent sending empty messages
 
@@ -88,14 +64,16 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      // const response = await axios.post(
-      //   "https://localhost:7141/api/animalHistory/get",
-      //   {
-      //     animalId: 1,
-      //   },
-      // );
-      // const history = response.data;
-
+      const petInfo = `
+      Pet Name: ${selectedPet.selectedPet.animalName || "Unknown"}
+      Type: ${selectedPet.selectedPet.animalType || "Unknown"}
+      Breed: ${selectedPet.selectedPet.animalBreed || "Unknown"}
+      Age: ${selectedPet.selectedPet.animalAge || "Unknown"}
+      Sex: ${selectedPet.selectedPet.animalSex || "Unknown"}
+      Vaccinations: ${selectedPet.selectedPet.vaccines ? selectedPet.selectedPet.vaccines.map((v) => `${v.name} on ${v.date}`).join(", ") : "None"}
+      Dewormings: ${selectedPet.selectedPet.deworming ? selectedPet.selectedPet.deworming.map((d) => `${d.type} on ${d.date}`).join(", ") : "None"}
+      Observations: ${selectedPet.selectedPet.observations ? selectedPet.selectedPet.observations.map((o) => `${o.description} on ${o.date}`).join(", ") : "None"}
+    `;
       const prompt = [
         {
           role: "system",
@@ -103,7 +81,7 @@ const Chatbot = () => {
         },
         {
           role: "user",
-          content: input, // Add the user's input here
+          content: `Here is the pet's medical history:\n${petInfo}\n\n${input}`,
         },
       ];
 
@@ -144,44 +122,34 @@ const Chatbot = () => {
   return (
     <ChatContainer>
       <ChatWindow>
-        <ChatList>
-          {messages.map((msg, index) => (
-            <ChatMessage key={index} sender={msg.sender}>
-              <ListItemText
-                primary={msg.sender === "user" ? "You" : "Vet Assistant"}
-                secondary={msg.text}
-              />
-            </ChatMessage>
-          ))}
-        </ChatList>
-        {loading && (
-          <CircularProgress
-            size={24}
-            sx={{
-              position: "absolute",
-              bottom: "10px",
-              right: "10px",
-            }}
-          />
-        )}
+        {messages.map((msg, index) => (
+          <ChatMessage key={index} isSent={msg.sender === "user"}>
+            <Text>{msg.text}</Text>
+          </ChatMessage>
+        ))}
+        {loading && <Spinner color="teal.500" />}
       </ChatWindow>
-      <InputContainer>
-        <ChatInput
-          variant="outlined"
-          placeholder="Type your message..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={loading}
-        />
-        <SendButton
-          variant="contained"
-          onClick={sendMessage}
-          disabled={loading}
-          endIcon={<SendIcon />}
-        >
-          Send
-        </SendButton>
-      </InputContainer>
+      <Box p={4}>
+        <HStack>
+          <Input
+            placeholder="Type your message..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={loading}
+            variant="filled"
+            bg="white"
+          />
+          <Tooltip label="Send your message" aria-label="Send message tooltip">
+            <IconButton
+              icon={<ArrowForwardIcon />}
+              onClick={sendMessage}
+              disabled={loading || !input.trim()}
+              colorScheme="teal"
+              aria-label="Send message"
+            />
+          </Tooltip>
+        </HStack>
+      </Box>
     </ChatContainer>
   );
 };

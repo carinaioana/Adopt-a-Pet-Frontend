@@ -4,19 +4,39 @@ import axios from "axios";
 import Announcement from "./Announcement.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import "../../styles/Announcements.css";
-import { Box, Container, IconButton, Input } from "@chakra-ui/react";
-import { BiSortUp, BiSortDown } from "react-icons/bi";
+import {
+  Box,
+  Container,
+  IconButton,
+  Input,
+  Menu,
+  MenuButton,
+  MenuItem,
+  Button,
+  MenuList,
+} from "@chakra-ui/react";
+import { BiSortUp, BiSortDown, BiFilter } from "react-icons/bi";
 import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import { useLoading } from "../context/LoadingContext.jsx";
+import LoadingSpinner from "../LoadingSpinner.jsx";
+import { useNotification } from "../context/NotificationContext.jsx";
 
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);
   const { userDetails } = useAuth();
+  const { isLoading, setIsLoading } = useLoading();
   const [modalOpen, setModalOpen] = useState(false);
+  const { showSuccess, showError } = useNotification();
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
   const [isSortedAsc, setIsSortedAsc] = useState(true);
   const [, setSearchQuery] = useState("");
   const handleSearchChange = (event) => {
+    const value = event.target.value.toLowerCase();
+    setSearchQuery(value);
+    filterAnnouncements(value);
+  };
+  const handleFilterChange = (event) => {
     const value = event.target.value.toLowerCase();
     setSearchQuery(value);
     filterAnnouncements(value);
@@ -32,13 +52,13 @@ const AnnouncementList = () => {
       setAnnouncements(filteredAnnouncements);
     }
   };
-
   useEffect(() => {
     fetchAnnouncements(); // Call this function on component mount
   }, []);
 
   const fetchAnnouncements = async () => {
     try {
+      setIsLoading(true);
       const announcementsResponse = await axios.get(
         "https://localhost:7141/api/v1/Announc",
       );
@@ -62,6 +82,9 @@ const AnnouncementList = () => {
       console.log(announcementsWithUser);
     } catch (error) {
       console.error("Error fetching announcements:", error);
+      showError("Failed to fetch announcements");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -69,6 +92,7 @@ const AnnouncementList = () => {
     const token = localStorage.getItem("authToken");
     console.log(formData);
     try {
+      setIsLoading(true);
       const response = await axios.post(
         "https://localhost:7141/api/v1/Announc",
         formData, // Directly use FormData object received from the modal
@@ -92,12 +116,15 @@ const AnnouncementList = () => {
       }
     } catch (error) {
       console.error("Error creating announcement:", error);
+    } finally {
+      setIsLoading(false);
     }
     handleCloseModal();
   };
 
   const handleDeleteAnnouncement = async (announcementId) => {
     try {
+      setIsLoading(true);
       const response = await fetch(
         `https://localhost:7141/api/v1/Announc/${announcementId}`,
         {
@@ -117,9 +144,10 @@ const AnnouncementList = () => {
           (announcement) => announcement.announcementId !== announcementId,
         ),
       );
-      console.log("Announcement deleted successfully");
     } catch (error) {
       console.error("Error deleting announcement:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   const handleSort = () => {
@@ -135,92 +163,177 @@ const AnnouncementList = () => {
     );
   };
   return (
-    <Container
-      display="flex"
-      flexDirection="column"
-      minWidth="80vw"
-      overflow="hidden"
-      p="2rem"
-      mt="1rem"
-      borderRadius="12px"
-      border="1px solid"
-      borderColor="gray.200"
-      boxShadow="sm"
-      position="relative"
-    >
-      <Box
+    <>
+      {isLoading && <LoadingSpinner />}{" "}
+      <Container
         display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={6}
+        flexDirection="column"
+        minWidth={{ base: "90vw", md: "80vw" }} // Responsive minWidth
+        overflow="hidden"
+        p="2rem"
+        mt="1rem"
+        borderRadius="12px"
+        border="1px solid"
+        borderColor="gray.200"
+        boxShadow="sm"
+        position="relative"
       >
         <Box
-          as="h1"
-          fontSize="3xl"
-          fontWeight="extrabold"
-          position="sticky"
-          top={0}
-          zIndex={1}
-          py={4}
+          display="flex"
+          flexDirection={{ base: "column", md: "row" }} // Stack on small screens, row on medium and up
+          justifyContent="space-between"
+          alignItems="center"
+          mb={6}
         >
-          Announcements
-        </Box>
-        <Box display="flex" alignItems="center">
-          <IconButton
-            aria-label="Sort Announcements"
-            icon={isSortedAsc ? <BiSortUp /> : <BiSortDown />}
-            onClick={handleSort}
-            mr={4}
-            colorScheme="blue"
-          />
-          <Input
-            size="md"
-            placeholder="Search Announcements"
-            onChange={handleSearchChange}
-            mr={4}
-            borderColor="blue.500"
-          />
-          <IconButton
-            aria-label="Add Announcement"
-            icon={<AddIcon />}
-            onClick={handleOpenModal}
-            colorScheme="blue"
-          />
-        </Box>
-      </Box>
-      <Box overflowY="auto" maxH="70vh" p={4} borderRadius="md" boxShadow="md">
-        {Array.isArray(announcements) && announcements.length > 0 ? (
-          announcements.map((announcement) => (
-            <Announcement
-              key={announcement.announcementId}
-              title={announcement.announcementTitle}
-              content={announcement.announcementDescription}
-              date={new Date(announcement.announcementDate).toLocaleString(
-                "en-UK",
-              )}
-              username={announcement.userName}
-              currentUserId={userDetails.id}
-              announcementUserId={announcement.createdBy}
-              announcementId={announcement.announcementId}
-              imageUrl={announcement.imageUrl}
-              onDelete={() =>
-                handleDeleteAnnouncement(announcement.announcementId)
-              }
-            />
-          ))
-        ) : (
-          <Box textAlign="center" mt={8} color="gray.500">
-            No announcements found.
+          <Box
+            as="h1"
+            fontSize="3xl"
+            fontWeight="extrabold"
+            position="sticky"
+            top={0}
+            zIndex={1}
+            py={4}
+          >
+            Announcements
           </Box>
-        )}
-      </Box>
+          <Box
+            display="flex"
+            flexDirection={{ base: "row", sm: "row" }} // Ensure filter and sort buttons are on the same row on mobile
+            alignItems="center"
+            gap={4}
+          >
+            <Menu closeOnSelect={false}>
+              <MenuButton
+                as={IconButton}
+                icon={<BiFilter />}
+                colorScheme="blue"
+              />
+              <MenuList>
+                <MenuItem
+                  onClick={(e) => {
+                    const selectAllCheckbox =
+                      document.getElementById("selectAll");
+                    selectAllCheckbox.checked = !selectAllCheckbox.checked;
+                    const checkboxes = document.querySelectorAll(
+                      "#lost, #found, #adopt",
+                    );
+                    checkboxes.forEach((checkbox) => {
+                      checkbox.checked = selectAllCheckbox.checked;
+                    });
+                    handleFilterChange(e); // Introduce handleFilterChange here
+                  }}
+                >
+                  <label htmlFor="selectAll">Select All</label>
+                  <input
+                    type="checkbox"
+                    id="selectAll"
+                    style={{ marginLeft: "auto" }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={(e) => {
+                    const checkbox = document.getElementById("lost");
+                    checkbox.checked = !checkbox.checked;
+                    handleFilterChange(e); // Introduce handleFilterChange here
+                  }}
+                >
+                  <label htmlFor="lost">Lost</label>
+                  <input
+                    type="checkbox"
+                    id="lost"
+                    style={{ marginLeft: "auto" }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={(e) => {
+                    const checkbox = document.getElementById("found");
+                    checkbox.checked = !checkbox.checked;
+                    handleFilterChange(e); // Introduce handleFilterChange here
+                  }}
+                >
+                  <label htmlFor="found">Found</label>
+                  <input
+                    type="checkbox"
+                    id="found"
+                    style={{ marginLeft: "auto" }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={(e) => {
+                    const checkbox = document.getElementById("adopt");
+                    checkbox.checked = !checkbox.checked;
+                    handleFilterChange(e); // Introduce handleFilterChange here
+                  }}
+                >
+                  <label htmlFor="adopt">Adopt</label>
+                  <input
+                    type="checkbox"
+                    id="adopt"
+                    style={{ marginLeft: "auto" }}
+                  />
+                </MenuItem>
+              </MenuList>
+            </Menu>
+            <IconButton
+              aria-label="Sort Announcements"
+              icon={isSortedAsc ? <BiSortUp /> : <BiSortDown />}
+              onClick={handleSort}
+              colorScheme="blue"
+            />
+            <Input
+              size="md"
+              placeholder="Search Announcements"
+              onChange={handleSearchChange}
+              borderColor="blue.500"
+            />
+            <IconButton
+              aria-label="Add Announcement"
+              icon={<AddIcon />}
+              onClick={handleOpenModal}
+              colorScheme="blue"
+            />
+          </Box>
+        </Box>
+        <Box
+          overflowY="auto"
+          maxH="70vh"
+          p={4}
+          borderRadius="md"
+          boxShadow="md"
+        >
+          {Array.isArray(announcements) && announcements.length > 0 ? (
+            announcements.map((announcement) => (
+              <Announcement
+                key={announcement.announcementId}
+                title={announcement.announcementTitle}
+                content={announcement.announcementDescription}
+                date={new Date(announcement.announcementDate).toLocaleString(
+                  "en-UK",
+                )}
+                username={announcement.userName}
+                currentUserId={userDetails.id}
+                announcementUserId={announcement.createdBy}
+                announcementId={announcement.announcementId}
+                imageUrl={announcement.imageUrl}
+                onDelete={() =>
+                  handleDeleteAnnouncement(announcement.announcementId)
+                }
+              />
+            ))
+          ) : (
+            <Box textAlign="center" mt={8} color="gray.500">
+              No announcements found.
+            </Box>
+          )}
+        </Box>
 
-      <AnnouncementModal
-        open={modalOpen}
-        onClose={handleCloseModal}
-        onCreate={handleCreateAnnouncement}
-      />
-    </Container>
+        <AnnouncementModal
+          open={modalOpen}
+          onClose={handleCloseModal}
+          onCreate={handleCreateAnnouncement}
+        />
+      </Container>
+    </>
   );
 };
 

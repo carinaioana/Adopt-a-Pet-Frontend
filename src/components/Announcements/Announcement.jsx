@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaEdit, FaSave, FaTimes, FaTrash } from "react-icons/fa";
+import { FaEdit, FaSave, FaTimes, FaTrash, FaUpload } from "react-icons/fa";
 import {
   Avatar,
   Box,
@@ -16,6 +16,7 @@ import {
   Image,
   useColorModeValue,
   Container,
+  Textarea,
 } from "@chakra-ui/react";
 
 const Announcement = ({
@@ -35,12 +36,31 @@ const Announcement = ({
   const [editedContent, setEditedContent] = useState(content);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [editedImage, setEditedImage] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleEdit = () => {
-    setIsEditing(true);
+  const handleEditModalOpen = () => {
+    setIsEditModalOpen(true);
   };
 
-  console.log(imageUrl);
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+  };
+
+  const handleEditSave = () => {
+    const formData = new FormData();
+    formData.append("title", editedTitle);
+    formData.append("content", editedContent);
+    if (editedImage) {
+      formData.append("image", editedImage);
+    }
+    onEdit(announcementId, formData); // Adjust the onEdit function to accept formData
+    setIsEditModalOpen(false);
+  };
+
+  const handleImageChange = (e) => {
+    setEditedImage(e.target.files[0]);
+  };
 
   const handleSave = () => {
     onEdit(editedTitle, editedContent);
@@ -69,8 +89,8 @@ const Announcement = ({
     setIsDeleteModalOpen(false);
   };
 
-  console.log("this is the image url", imageUrl);
   const isOwner = currentUserId === announcementUserId;
+  console.log("Owner: ", isOwner, currentUserId, announcementUserId);
 
   return (
     <Container
@@ -136,7 +156,7 @@ const Announcement = ({
                       <IconButton
                         icon={<FaEdit />}
                         aria-label="Edit"
-                        onClick={handleEdit}
+                        onClick={handleEditModalOpen}
                       />
                       <IconButton
                         icon={<FaTrash />}
@@ -211,6 +231,38 @@ const Announcement = ({
               }}
             >
               Delete
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={isEditModalOpen} onClose={handleEditModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Announcement</ModalHeader>
+          <ModalBody>
+            <Input
+              placeholder="Title"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              mb={3}
+            />
+            <Textarea
+              placeholder="Content"
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+              mb={3}
+            />
+            <Button as="label" variant="outline" leftIcon={<FaUpload />}>
+              Upload Image
+              <input type="file" hidden onChange={handleImageChange} />
+            </Button>
+          </ModalBody>
+          <ModalFooter>
+            <Button mr={3} onClick={handleEditModalClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="blue" onClick={handleEditSave}>
+              Save
             </Button>
           </ModalFooter>
         </ModalContent>

@@ -25,25 +25,25 @@ import {
   SimpleGrid,
   Stack,
   Tag,
+  TagCloseButton,
   TagLabel,
   Text,
 } from "@chakra-ui/react";
-import { AddIcon, Icon } from "@chakra-ui/icons";
-import {
-  FaBolt,
-  FaHeart,
-  FaQuestion,
-  FaSmile,
-  FaUtensils,
-} from "react-icons/fa";
+import { AddIcon, DeleteIcon, Icon } from "@chakra-ui/icons";
+import { useLoading } from "../context/LoadingContext.jsx";
+import { useNotification } from "../context/NotificationContext.jsx";
 
 const ProfileDetails = ({ user, onUserUpdate }) => {
+  const { isLoading, setIsLoading } = useLoading();
+  const { showSuccess, setShowSuccess } = useNotification();
   const [selectedPet, setSelectedPet] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [openAddPetDialog, setOpenAddPetDialog] = useState(false);
   const [announcements, setAnnouncements] = useState([]);
   const [currentUser, setCurrentUser] = useState("");
-
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [dogBreeds, setDogBreeds] = useState([]);
+  const [catBreeds, setCatBreeds] = useState([]);
   const [newPet, setNewPet] = useState({
     name: "",
     age: "",
@@ -70,6 +70,29 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
   };
 
   useEffect(() => {
+    const fetchDogBreeds = async () => {
+      try {
+        const response = await axios.get("https://api.thedogapi.com/v1/breeds");
+        setDogBreeds(response.data);
+      } catch (error) {
+        console.error("Error fetching dog breeds:", error);
+      }
+    };
+
+    const fetchCatBreeds = async () => {
+      try {
+        const response = await axios.get("https://api.thecatapi.com/v1/breeds");
+        setCatBreeds(response.data);
+      } catch (error) {
+        console.error("Error fetching cat breeds:", error);
+      }
+    };
+
+    fetchDogBreeds();
+    fetchCatBreeds();
+  }, []);
+
+  useEffect(() => {
     if (selectedPet) {
       const currentPet = user.petProfiles.find(
         (pet) => pet.name === selectedPet.name,
@@ -82,6 +105,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
     const fetchAnnouncements = async () => {
       const token = localStorage.getItem("authToken"); // Replace 'yourTokenKey' with the actual key
       try {
+        setIsLoading(true);
         const response = await axios.get(
           "https://localhost:7141/api/v1/Announc/my-announcements",
           {
@@ -90,9 +114,25 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
             },
           },
         );
-        setAnnouncements(response.data.announcements);
+
+        const announcementsWithUser = await Promise.all(
+          response.data.announcements.map(async (announcement) => {
+            const userResponse = await axios.get(
+              `https://localhost:7141/api/v1/Authentication/userinfo/${announcement.createdBy}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            );
+            return { ...announcement, userName: userResponse.data.name };
+          }),
+        );
+        setAnnouncements(announcementsWithUser);
       } catch (error) {
         console.error("Error fetching announcements:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -102,8 +142,9 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
   useEffect(() => {
     // Fetch current user's details
     const fetchCurrentUser = async () => {
-      const token = localStorage.getItem("authToken"); // Adjust if your token is stored differently
+      const token = localStorage.getItem("authToken");
       try {
+        setIsLoading(true);
         const response = await axios.get(
           "https://localhost:7141/api/v1/Authentication/currentuserinfo",
           {
@@ -112,9 +153,16 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
             },
           },
         );
-        setCurrentUser(response.data);
+
+        setCurrentUser(
+          response.data.claims[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          ],
+        );
       } catch (error) {
         console.error("Error fetching current user details:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -135,6 +183,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
     };
 
     try {
+      setIsLoading(true);
       const response = await axios.post(
         "https://localhost:7141/api/v1/Animals",
         newPetData,
@@ -144,14 +193,20 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
           },
         },
       );
-      console.log("Pet added successfully");
-      setOpenAddPetDialog(false); // Close the modal after successful submission
+      if (response.status === 201) {
+        showSuccess("Pet added successfully!");
+      }
+      setOpenAddPetDialog(false);
 
-      // Update the state with the newly added pet
       const addedPet = response.data;
+      onUserUpdate({ ...user, petProfiles: [...user.petProfiles, addedPet] });
       setSelectedPet(addedPet);
+      // window.location.reload();
     } catch (error) {
       console.error("Error adding pet:", error);
+      showError("Error adding pet!");
+    } finally {
+      setIsLoading(false);
     }
   };
   const handleOpenDialog = (pet) => {
@@ -175,24 +230,25 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
     setOpenDialog(false); // Close the dialog after saving changes
   };
 
-  const [showNewTraitBox, setShowNewTraitBox] = useState(false);
-  const handleAddTrait = () => {
-    if (!newTrait.trim()) return; // Prevent adding empty traits
-    const updatedTraits = [...selectedPet.traits, newTrait];
-    setSelectedPet({ ...selectedPet, traits: updatedTraits });
-    // Update the user's petProfiles array with the new trait
-    const updatedPetProfiles = user.petProfiles.map((pet) =>
-      pet.name === selectedPet.name
-        ? { ...selectedPet, traits: updatedTraits }
-        : pet,
-    );
-    onUserUpdate({ ...user, petProfiles: updatedPetProfiles });
-    setNewTrait(""); // Reset new trait input
-  };
+  // const [showNewTraitBox, setShowNewTraitBox] = useState(false);
+  // const handleAddTrait = () => {
+  //   if (!newTrait.trim()) return; // Prevent adding empty traits
+  //   const updatedTraits = [...selectedPet.traits, newTrait];
+  //   setSelectedPet({ ...selectedPet, traits: updatedTraits });
+  //   // Update the user's petProfiles array with the new trait
+  //   const updatedPetProfiles = user.petProfiles.map((pet) =>
+  //     pet.name === selectedPet.name
+  //       ? { ...selectedPet, traits: updatedTraits }
+  //       : pet,
+  //   );
+  //   onUserUpdate({ ...user, petProfiles: updatedPetProfiles });
+  //   setNewTrait(""); // Reset new trait input
+  // };
 
   const handleDeleteAnnouncement = async (announcementId) => {
     const token = localStorage.getItem("authToken"); // Adjust if your token is stored differently
     try {
+      setIsLoading(true);
       await axios.delete(
         `https://localhost:7141/api/v1/Announc/${announcementId}`,
         {
@@ -201,7 +257,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
           },
         },
       );
-      // Update your state to reflect the deletion
+
       setAnnouncements(
         announcements.filter(
           (announcement) => announcement.announcementId !== announcementId,
@@ -209,9 +265,42 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
       );
     } catch (error) {
       console.error("Error deleting announcement:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
+  const handleOpenDeleteModal = () => {
+    setOpenDeleteModal(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    const authToken = localStorage.getItem("authToken");
+    try {
+      setIsLoading(true);
+      const response = await axios.delete(
+        `https://localhost:7141/api/v1/Animals/${selectedPet.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      );
+      if (response.status === 204) {
+        showSuccess("Pet deleted successfully!");
+      }
+      setOpenDeleteModal(false);
+      setOpenDialog(false);
+      const updatedPetProfiles = user.petProfiles.filter(
+        (pet) => pet.id !== selectedPet.id,
+      );
+      onUserUpdate({ ...user, petProfiles: updatedPetProfiles });
+    } catch (error) {
+      console.error("Error deleting pet:", error);
+      showError("Error deleting pet!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <Container
       maxW="container.xl"
@@ -220,42 +309,6 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
       borderRadius="md"
       boxShadow="md"
     >
-      <Box borderWidth="1px" borderRadius="md" p={4} boxShadow="md">
-        <Box mb={4}>
-          <Heading as="h2" size="xl">
-            My Announcements
-          </Heading>
-        </Box>
-        <Box overflowY="auto">
-          {Array.isArray(announcements) ? (
-            announcements.map((announcement, index) => (
-              <Announcement
-                key={index}
-                title={announcement.announcementTitle}
-                content={announcement.announcementDescription}
-                date={new Date(announcement.announcementDate).toLocaleString(
-                  "en-UK",
-                )}
-                username={
-                  currentUser?.claims?.[
-                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
-                  ]
-                }
-                currentUserId={currentUser.userName}
-                imageUrl={announcement.imageUrl}
-                announcementUserId={announcement.createdBy}
-                announcementId={announcement.announcementId}
-                onDelete={() =>
-                  handleDeleteAnnouncement(announcement.announcementId)
-                }
-              />
-            ))
-          ) : (
-            <Text>No announcements found.</Text>
-          )}
-        </Box>
-      </Box>
-
       <Box borderWidth="1px" borderRadius="md" p={4} boxShadow="md" mt={4}>
         <Box mb={4}>
           <Heading as="h2" size="xl">
@@ -379,7 +432,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                         </FormControl>
                         <FormControl mb={4}>
                           <FormLabel>Type</FormLabel>
-                          <Input
+                          <Select
                             value={selectedPet.type}
                             onChange={(e) => {
                               const updatedPet = {
@@ -398,11 +451,14 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 petProfiles: updatedPetProfiles,
                               });
                             }}
-                          />
+                          >
+                            <option value="Dog">Dog</option>
+                            <option value="Cat">Cat</option>
+                          </Select>
                         </FormControl>
                         <FormControl mb={4}>
                           <FormLabel>Breed</FormLabel>
-                          <Input
+                          <Select
                             value={selectedPet.breed}
                             onChange={(e) => {
                               const updatedPet = {
@@ -421,11 +477,24 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 petProfiles: updatedPetProfiles,
                               });
                             }}
-                          />
+                          >
+                            {selectedPet.type === "Dog" &&
+                              dogBreeds.map((breed) => (
+                                <option key={breed.id} value={breed.name}>
+                                  {breed.name}
+                                </option>
+                              ))}
+                            {selectedPet.type === "Cat" &&
+                              catBreeds.map((breed) => (
+                                <option key={breed.id} value={breed.name}>
+                                  {breed.name}
+                                </option>
+                              ))}
+                          </Select>
                         </FormControl>
                         <FormControl mb={4}>
                           <FormLabel>Sex</FormLabel>
-                          <Input
+                          <Select
                             value={selectedPet.sex}
                             onChange={(e) => {
                               const updatedPet = {
@@ -444,7 +513,10 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 petProfiles: updatedPetProfiles,
                               });
                             }}
-                          />
+                          >
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                          </Select>
                         </FormControl>
                         <FormControl mb={4}>
                           <FormLabel>Description</FormLabel>
@@ -471,15 +543,80 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                         </FormControl>
                         <FormControl mb={4}>
                           <FormLabel>Traits</FormLabel>
-                          <Input
-                            value={newTrait}
-                            onChange={(e) => setNewTrait(e.target.value)}
-                          />
-                          <Button onClick={handleAddTrait}>Add Trait</Button>
+                          <Select
+                            placeholder="Select traits"
+                            onChange={(e) => {
+                              const selectedTrait = e.target.value;
+                              if (!selectedPet.traits.includes(selectedTrait)) {
+                                const updatedPet = {
+                                  ...selectedPet,
+                                  traits: [
+                                    ...selectedPet.traits,
+                                    selectedTrait,
+                                  ],
+                                };
+                                setSelectedPet(updatedPet);
+                                const updatedPetProfiles = user.petProfiles.map(
+                                  (pet) =>
+                                    pet.name === selectedPet.name
+                                      ? updatedPet
+                                      : pet,
+                                );
+                                onUserUpdate({
+                                  ...user,
+                                  petProfiles: updatedPetProfiles,
+                                });
+                              }
+                            }}
+                          >
+                            <option value="playful">Playful</option>
+                            <option value="loving">Loving</option>
+                            <option value="gourmand">Gourmand</option>
+                            <option value="energetic">Energetic</option>
+                            <option value="curious">Curious</option>
+                          </Select>
                           <Box mt={2}>
                             {selectedPet.traits.map((trait, index) => (
-                              <Tag key={index} mr={2} mt={2}>
-                                {trait}
+                              <Tag
+                                key={index}
+                                size="md"
+                                borderRadius="full"
+                                variant="solid"
+                                colorScheme={
+                                  [
+                                    "teal",
+                                    "blue",
+                                    "green",
+                                    "red",
+                                    "purple",
+                                    "orange",
+                                  ][Math.floor(Math.random() * 6)]
+                                }
+                                mr={2}
+                                mt={2}
+                              >
+                                <TagLabel>{trait}</TagLabel>
+                                <TagCloseButton
+                                  onClick={() => {
+                                    const updatedPet = {
+                                      ...selectedPet,
+                                      traits: selectedPet.traits.filter(
+                                        (t) => t !== trait,
+                                      ),
+                                    };
+                                    setSelectedPet(updatedPet);
+                                    const updatedPetProfiles =
+                                      user.petProfiles.map((pet) =>
+                                        pet.name === selectedPet.name
+                                          ? updatedPet
+                                          : pet,
+                                      );
+                                    onUserUpdate({
+                                      ...user,
+                                      petProfiles: updatedPetProfiles,
+                                    });
+                                  }}
+                                />
                               </Tag>
                             ))}
                           </Box>
@@ -495,11 +632,16 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                         <Text>Description: {selectedPet.description}</Text>
                         <Box mt={2}>
                           <Text>Traits:</Text>
-                          {selectedPet.traits.map((trait, index) => (
-                            <Tag key={index} mr={2} mt={2}>
-                              {trait}
-                            </Tag>
-                          ))}
+                          {selectedPet.traits &&
+                          selectedPet.traits.length > 0 ? (
+                            selectedPet.traits.map((trait, index) => (
+                              <Tag key={index} mr={2} mt={2}>
+                                {trait}
+                              </Tag>
+                            ))
+                          ) : (
+                            <Text>No traits added</Text>
+                          )}
                         </Box>
                       </>
                     )}
@@ -509,11 +651,26 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
             </ModalBody>
             <ModalFooter>
               <Button onClick={handleCloseDialog}>Close</Button>
-              {isEditMode && (
+              {isEditMode ? (
                 <Button colorScheme="teal" onClick={handleSaveChanges}>
                   Save
                 </Button>
+              ) : (
+                <Button
+                  ml={2}
+                  colorScheme="teal"
+                  onClick={() => setIsEditMode(true)}
+                >
+                  Edit
+                </Button>
               )}
+              <IconButton
+                colorScheme="red"
+                aria-label="Delete pet"
+                icon={<DeleteIcon />}
+                onClick={() => handleOpenDeleteModal(selectedPet)}
+                ml={2}
+              />
             </ModalFooter>
           </ModalContent>
         </Modal>
@@ -548,21 +705,37 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel>Type</FormLabel>
-                <Input
+                <Select
                   value={newPet.type}
                   onChange={(e) =>
                     setNewPet({ ...newPet, type: e.target.value })
                   }
-                />
+                >
+                  <option value="Dog">Dog</option>
+                  <option value="Cat">Cat</option>
+                </Select>
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel>Breed</FormLabel>
-                <Input
+                <Select
                   value={newPet.breed}
                   onChange={(e) =>
                     setNewPet({ ...newPet, breed: e.target.value })
                   }
-                />
+                >
+                  {newPet.type === "Dog" &&
+                    dogBreeds.map((breed) => (
+                      <option key={breed.id} value={breed.name}>
+                        {breed.name}
+                      </option>
+                    ))}
+                  {newPet.type === "Cat" &&
+                    catBreeds.map((breed) => (
+                      <option key={breed.id} value={breed.name}>
+                        {breed.name}
+                      </option>
+                    ))}
+                </Select>
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel>Sex</FormLabel>
@@ -588,39 +761,50 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
               <FormControl mb={4}>
                 <FormLabel>Traits</FormLabel>
                 <Select
-                  multiple
-                  value={newPet.traits}
-                  onChange={(e) =>
-                    setNewPet({
-                      ...newPet,
-                      traits: Array.from(
-                        e.target.selectedOptions,
-                        (option) => option.value,
-                      ),
-                    })
-                  }
+                  placeholder="Select traits"
+                  onChange={(e) => {
+                    const selectedTrait = e.target.value;
+                    if (!newPet.traits.includes(selectedTrait)) {
+                      setNewPet({
+                        ...newPet,
+                        traits: [...newPet.traits, selectedTrait],
+                      });
+                    }
+                  }}
                 >
-                  <option value="playful">
-                    <Icon as={FaSmile} mr={2} />
-                    Playful
-                  </option>
-                  <option value="loving">
-                    <Icon as={FaHeart} mr={2} />
-                    Loving
-                  </option>
-                  <option value="gourmand">
-                    <Icon as={FaUtensils} mr={2} />
-                    Gourmand
-                  </option>
-                  <option value="energetic">
-                    <Icon as={FaBolt} mr={2} />
-                    Energetic
-                  </option>
-                  <option value="curious">
-                    <Icon as={FaQuestion} mr={2} />
-                    Curious
-                  </option>
+                  <option value="playful">Playful</option>
+                  <option value="loving">Loving</option>
+                  <option value="gourmand">Gourmand</option>
+                  <option value="energetic">Energetic</option>
+                  <option value="curious">Curious</option>
                 </Select>
+                <Box mt={2}>
+                  {newPet.traits.map((trait, index) => (
+                    <Tag
+                      key={index}
+                      size="md"
+                      borderRadius="full"
+                      variant="solid"
+                      colorScheme={
+                        ["teal", "blue", "green", "red", "purple", "orange"][
+                          Math.floor(Math.random() * 6)
+                        ]
+                      }
+                      mr={2}
+                      mt={2}
+                    >
+                      <TagLabel>{trait}</TagLabel>
+                      <TagCloseButton
+                        onClick={() => {
+                          setNewPet({
+                            ...newPet,
+                            traits: newPet.traits.filter((t) => t !== trait),
+                          });
+                        }}
+                      />
+                    </Tag>
+                  ))}
+                </Box>
               </FormControl>
             </ModalBody>
             <ModalFooter>
@@ -630,6 +814,58 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
             </ModalFooter>
           </ModalContent>
         </Modal>
+        <Modal
+          isOpen={openDeleteModal}
+          onClose={() => setOpenDeleteModal(false)}
+        >
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Confirm Delete</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Text>Are you sure you want to delete this pet?</Text>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="ghost" onClick={() => setOpenDeleteModal(false)}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleConfirmDelete} ml={3}>
+                Delete
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </Box>
+      <Box borderWidth="1px" borderRadius="md" p={4} boxShadow="md">
+        <Box mb={4}>
+          <Heading as="h2" size="xl">
+            My Announcements
+          </Heading>
+        </Box>
+        <Box overflowY="auto">
+          {Array.isArray(announcements) ? (
+            announcements.map((announcement, index) => (
+              <Announcement
+                key={index}
+                title={announcement.announcementTitle}
+                content={announcement.announcementDescription}
+                date={new Date(announcement.announcementDate).toLocaleString(
+                  "en-UK",
+                )}
+                username={announcement.userName}
+                currentUserId={currentUser}
+                imageUrl={announcement.imageUrl}
+                announcementUserId={announcement.createdBy}
+                announcementId={announcement.announcementId}
+                onDelete={() =>
+                  handleDeleteAnnouncement(announcement.announcementId)
+                }
+              />
+            ))
+          ) : (
+            <Text>No announcements found.</Text>
+          )}
+        </Box>
       </Box>
     </Container>
   );
@@ -646,5 +882,4 @@ ProfileDetails.propTypes = {
   }).isRequired,
   onUserUpdate: PropTypes.func.isRequired,
 };
-
 export default ProfileDetails;

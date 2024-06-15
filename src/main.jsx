@@ -4,13 +4,19 @@ import App from "./App.jsx";
 import "./styles/index.css";
 import { AuthProvider } from "./components/context/AuthContext.jsx";
 import { ChakraProvider } from "@chakra-ui/react";
+import { LoadingProvider } from "./components/context/LoadingContext.jsx";
+import { NotificationProvider } from "./components/context/NotificationContext.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ChakraProvider>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <NotificationProvider>
+        <LoadingProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </LoadingProvider>
+      </NotificationProvider>
     </ChakraProvider>
   </React.StrictMode>,
 );
