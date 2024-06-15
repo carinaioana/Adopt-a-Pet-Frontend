@@ -20,6 +20,7 @@ import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useLoading } from "../context/LoadingContext.jsx";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
+import { geocodeByPlaceId, getLatLng } from "react-google-places-autocomplete";
 
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -150,6 +151,7 @@ const AnnouncementList = () => {
       setIsLoading(false);
     }
   };
+
   const handleSort = () => {
     setIsSortedAsc(!isSortedAsc); // Toggle the sort order
     setAnnouncements((currentAnnouncements) =>
@@ -300,25 +302,45 @@ const AnnouncementList = () => {
           p={4}
           borderRadius="md"
           boxShadow="md"
+          display="grid"
+          gridTemplateColumns={{
+            base: "1fr",
+            sm: "1fr 1fr",
+            md: "1fr 1fr 1fr",
+            lg: "1fr 1fr 1fr 1fr",
+          }}
+          gap={4}
         >
           {Array.isArray(announcements) && announcements.length > 0 ? (
             announcements.map((announcement) => (
-              <Announcement
+              <Box
                 key={announcement.announcementId}
-                title={announcement.announcementTitle}
-                content={announcement.announcementDescription}
-                date={new Date(announcement.announcementDate).toLocaleString(
-                  "en-UK",
-                )}
-                username={announcement.userName}
-                currentUserId={userDetails.id}
-                announcementUserId={announcement.createdBy}
-                announcementId={announcement.announcementId}
-                imageUrl={announcement.imageUrl}
-                onDelete={() =>
-                  handleDeleteAnnouncement(announcement.announcementId)
-                }
-              />
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius="md"
+                p={4}
+                boxShadow="sm"
+              >
+                <Announcement
+                  title={announcement.announcementTitle}
+                  content={announcement.announcementDescription}
+                  date={new Date(announcement.announcementDate).toLocaleString(
+                    "en-UK",
+                  )}
+                  username={announcement.userName}
+                  currentUserId={userDetails.id}
+                  announcementUserId={announcement.createdBy}
+                  announcementId={announcement.announcementId}
+                  imageUrl={announcement.imageUrl}
+                  animalType={announcement.animalType}
+                  animalBreed={announcement.animalBreed}
+                  animalGender={announcement.animalGender}
+                  location={announcement.location}
+                  onDelete={() =>
+                    handleDeleteAnnouncement(announcement.announcementId)
+                  }
+                />
+              </Box>
             ))
           ) : (
             <Box textAlign="center" mt={8} color="gray.500">

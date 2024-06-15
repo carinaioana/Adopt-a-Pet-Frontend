@@ -201,7 +201,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
       const addedPet = response.data;
       onUserUpdate({ ...user, petProfiles: [...user.petProfiles, addedPet] });
       setSelectedPet(addedPet);
-      // window.location.reload();
+      window.location.reload();
     } catch (error) {
       console.error("Error adding pet:", error);
       showError("Error adding pet!");

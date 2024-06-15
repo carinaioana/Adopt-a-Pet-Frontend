@@ -17,13 +17,16 @@ import {
   useColorModeValue,
   Container,
   Textarea,
+  Tag,
 } from "@chakra-ui/react";
 
 const Announcement = ({
   title,
   content,
-  date,
-  username,
+  animalType,
+  animalBreed,
+  animalGender,
+  location,
   onEdit,
   onDelete,
   currentUserId,
@@ -102,116 +105,119 @@ const Announcement = ({
       overflow="hidden"
       mb={4}
     >
-      <Box p={4} display="flex" flexDirection="column" gap={2}>
-        {isEditing ? (
-          <>
-            <Input
-              size="sm"
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              mb={2}
-            />
-            <Input
-              size="sm"
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-            />
-          </>
-        ) : (
-          <>
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Box>
-                <Text fontWeight="semibold" fontSize="lg">
-                  {editedTitle}
-                </Text>
-                <Box display="flex" alignItems="center" mt={1}>
-                  <Avatar name={username} size="xs" mr={2} />
-                  <Text fontSize="sm">{username}</Text>
-                </Box>
-                <Text fontSize="sm" color="gray.500" mt={1}>
-                  {date}
-                </Text>
-              </Box>
-              {isOwner && (
-                <Box display="flex" gap={2}>
-                  {isEditing ? (
-                    <>
-                      <IconButton
-                        icon={<FaSave />}
-                        aria-label="Save"
-                        onClick={handleSave}
-                      />
-                      <IconButton
-                        icon={<FaTimes />}
-                        aria-label="Cancel"
-                        onClick={handleCancel}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <IconButton
-                        icon={<FaEdit />}
-                        aria-label="Edit"
-                        onClick={handleEditModalOpen}
-                      />
-                      <IconButton
-                        icon={<FaTrash />}
-                        aria-label="Delete"
-                        onClick={handleDeleteModalOpen}
-                      />
-                    </>
-                  )}
-                </Box>
+      <Box
+        p={4}
+        display="flex"
+        flexDirection="column"
+        justifyContent="space-between"
+        flex="1"
+      >
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box textAlign="center">
+            <Tag size="lg" variant="solid" colorScheme="blue" mb={2}>
+              {editedTitle}
+            </Tag>
+          </Box>
+          {isOwner && (
+            <Box display="flex" gap={2}>
+              {isEditing ? (
+                <>
+                  <IconButton
+                    icon={<FaSave />}
+                    aria-label="Save"
+                    onClick={handleSave}
+                  />
+                  <IconButton
+                    icon={<FaTimes />}
+                    aria-label="Cancel"
+                    onClick={handleCancel}
+                  />
+                </>
+              ) : (
+                <>
+                  <IconButton
+                    icon={<FaEdit />}
+                    aria-label="Edit"
+                    onClick={handleEditModalOpen}
+                  />
+                  <IconButton
+                    icon={<FaTrash />}
+                    aria-label="Delete"
+                    onClick={handleDeleteModalOpen}
+                  />
+                </>
               )}
             </Box>
-          </>
-        )}
+          )}
+        </Box>
       </Box>
-      <Box p={4}>
-        <Text mb={4}>{editedContent}</Text>
-        {imageUrl && (
-          <Box
-            mt={4}
-            mx="auto"
-            maxW="md"
-            borderRadius="md"
-            overflow="hidden"
-            boxShadow="md"
-            cursor="pointer"
-            onClick={handleImageModalOpen}
-          >
+      {imageUrl && (
+        <Box
+          mx="auto"
+          maxW="xl"
+          minW="xs"
+          borderRadius="lg"
+          overflow="hidden"
+          boxShadow="md"
+          cursor="pointer"
+          onClick={handleImageModalOpen}
+          flex="1"
+          m="0.5rem"
+        >
+          <Image
+            src={imageUrl}
+            alt="Announcement"
+            maxH="200px"
+            objectFit="cover"
+            w="100%"
+            onError={(e) => console.error("Image failed to load:", e)}
+          />
+        </Box>
+      )}
+      <Box p={4} flex="1" m="0.5rem">
+        {animalType && (
+          <Text mb={2}>
+            <strong>Species:</strong> {animalType}
+          </Text>
+        )}
+        {animalBreed && (
+          <Text mb={2}>
+            <strong>Breed:</strong> {animalBreed}
+          </Text>
+        )}
+        {animalGender && (
+          <Text mb={2}>
+            <strong>Gender:</strong> {animalGender}
+          </Text>
+        )}
+        {location && (
+          <Text mb={2}>
+            <strong>Location:</strong> {location}
+          </Text>
+        )}
+        <Text mt={4}>
+          {editedContent.split(", ").map((line, index) => (
+            <Box key={index}>{line}</Box>
+          ))}
+        </Text>
+      </Box>
+      <Modal isOpen={isImageModalOpen} onClose={handleImageModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Image Preview</ModalHeader>
+          <ModalBody>
             <Image
               src={imageUrl}
               alt="Announcement"
-              maxH="200px"
-              objectFit="cover"
               w="100%"
               onError={(e) => console.error("Image failed to load:", e)}
             />
-          </Box>
-        )}
-        <Modal isOpen={isImageModalOpen} onClose={handleImageModalClose}>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Image Preview</ModalHeader>
-            <ModalBody>
-              <Image
-                src={imageUrl}
-                alt="Announcement"
-                w="100%"
-                onError={(e) => console.error("Image failed to load:", e)}
-              />
-            </ModalBody>
-            <ModalFooter>
-              <Button onClick={handleImageModalClose}>Close</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Button onClick={handleImageModalClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
       <Modal isOpen={isDeleteModalOpen} onClose={handleDeleteModalClose}>
         <ModalOverlay />
         <ModalContent>
