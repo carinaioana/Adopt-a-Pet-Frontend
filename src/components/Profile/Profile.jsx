@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardBody,
-  CircularProgress,
-  Container,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { Box, Button, Container } from "@chakra-ui/react";
 import "../../styles/Profile.css";
 import "../../styles/App.css";
 import ProfileHeader from "./ProfileHeader.jsx";
@@ -30,8 +22,11 @@ const Profile = () => {
     const fetchUserDetails = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem("authToken"); // Retrieve the token from localStorage
-        // Fetch pet profiles
+        const token = localStorage.getItem("authToken");
+
+        const userId = userDetails.id;
+        console.log(userDetails);
+
         const petProfilesResponse = await axios.get(
           "https://localhost:7141/api/v1/Animals/my-animals",
           {
@@ -40,6 +35,8 @@ const Profile = () => {
             },
           },
         );
+        console.log(petProfilesResponse);
+
         const petProfiles = petProfilesResponse.data.animals.map((pet) => ({
           id: pet.animalId,
           name: pet.animalName,
@@ -53,18 +50,22 @@ const Profile = () => {
         }));
 
         const userInfo = {
-          id: userDetails.id,
+          id: userId,
           username: userDetails.username,
-          profilePhoto: "src/assets/carina.jpg",
+          profilePhoto: userDetails.profilePhoto,
           fullName: userDetails.name,
           email: userDetails.email,
-          age: 21,
-          userLocation: { selectedLocation: "" },
-          description: "Loves hiking and outdoor activities.",
+          birthDate: userDetails.birthDate,
+          userLocation: { selectedLocation: userDetails.location },
+          description: userDetails.description,
+          phoneNumber: userDetails.phoneNumber,
           petProfiles: petProfiles,
         };
-
-        setUser(userInfo);
+        console.log(userInfo);
+        setUser((prevUser) => {
+          console.log(prevUser);
+          return userInfo;
+        });
       } catch (error) {
         console.error("Error fetching user details:", error);
       } finally {
@@ -76,9 +77,8 @@ const Profile = () => {
       fetchUserDetails();
     }
   }, [userDetails]);
-
-  if (!user) {
-    return <CircularProgress />;
+  if (user === null) {
+    return <LoadingSpinner />;
   }
 
   return (
@@ -86,12 +86,12 @@ const Profile = () => {
       {isLoading && <LoadingSpinner />}{" "}
       <Container
         display="flex"
-        flexDirection={{ base: "column", md: "row" }} // Use column layout on smaller screens
+        flexDirection={{ base: "column", md: "row" }}
         alignItems="center"
         justifyContent="center"
-        minWidth="80vw" // Use 100vw for full width on all screen sizes
-        p={{ base: "1rem", md: "2rem" }} // Adjust padding for different screen sizes
-        mt={{ base: "0.5rem", md: "1rem" }} // Adjust top margin for different screen sizes
+        minWidth="80vw"
+        p={{ base: "1rem", md: "2rem" }}
+        mt={{ base: "0.5rem", md: "1rem" }}
         borderRadius="12px"
         border="1px solid"
         borderColor="gray.200"

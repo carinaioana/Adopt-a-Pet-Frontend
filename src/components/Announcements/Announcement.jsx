@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEdit, FaSave, FaTimes, FaTrash, FaUpload } from "react-icons/fa";
 import {
   Avatar,
@@ -18,7 +18,16 @@ import {
   Container,
   Textarea,
   Tag,
+  FormControl,
+  FormLabel,
+  Select,
+  Heading,
+  Progress,
 } from "@chakra-ui/react";
+import GooglePlacesAutocomplete, {
+  geocodeByPlaceId,
+} from "react-google-places-autocomplete";
+import axios from "axios";
 
 const Announcement = ({
   title,
@@ -41,6 +50,40 @@ const Announcement = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editedImage, setEditedImage] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editedAnimalType, setEditedAnimalType] = useState("");
+  const [editedAnimalBreed, setEditedAnimalBreed] = useState("");
+  const [editedAnimalGender, setEditedAnimalGender] = useState("");
+  const [announcementDescription, setAnnouncementDescription] = useState();
+  const [age, setAge] = useState("");
+  const [color, setColor] = useState("");
+  const [dateLostFound, setDateLostFound] = useState("");
+  const [editedLocation, setEditedLocation] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [dogBreeds, setDogBreeds] = useState([]);
+  const [catBreeds, setCatBreeds] = useState([]);
+
+  useEffect(() => {
+    const fetchDogBreeds = async () => {
+      try {
+        const response = await axios.get("https://api.thedogapi.com/v1/breeds");
+        setDogBreeds(response.data);
+      } catch (error) {
+        console.error("Error fetching dog breeds:", error);
+      }
+    };
+
+    const fetchCatBreeds = async () => {
+      try {
+        const response = await axios.get("https://api.thecatapi.com/v1/breeds");
+        setCatBreeds(response.data);
+      } catch (error) {
+        console.error("Error fetching cat breeds:", error);
+      }
+    };
+
+    fetchDogBreeds();
+    fetchCatBreeds();
+  }, []);
 
   const handleEditModalOpen = () => {
     setIsEditModalOpen(true);
@@ -50,24 +93,36 @@ const Announcement = ({
     setIsEditModalOpen(false);
   };
 
-  const handleEditSave = () => {
-    const formData = new FormData();
-    formData.append("title", editedTitle);
-    formData.append("content", editedContent);
-    if (editedImage) {
-      formData.append("image", editedImage);
-    }
-    onEdit(announcementId, formData); // Adjust the onEdit function to accept formData
-    setIsEditModalOpen(false);
-  };
-
   const handleImageChange = (e) => {
     setEditedImage(e.target.files[0]);
   };
 
   const handleSave = () => {
-    onEdit(editedTitle, editedContent);
-    setIsEditing(false);
+    const formData = new FormData();
+    formData.append("AnnouncementId", announcementId);
+    formData.append("AnnouncementTitle", editedTitle);
+    formData.append("AnnouncementDate", new Date().toISOString());
+    let description = "";
+    if (age) description += `Age: ${age}, `;
+    if (color) description += `Color: ${color}, `;
+    if (dateLostFound) description += `Date Lost/Found: ${dateLostFound}, `;
+    if (description) {
+      description = description.slice(0, -2);
+      formData.append("AnnouncementDescription", description);
+    }
+    formData.append("AnimalType", editedAnimalType);
+    formData.append("AnimalBreed", editedAnimalBreed);
+    formData.append("AnimalGender", editedAnimalGender);
+    formData.append("Location", editedLocation);
+
+    if (editedImage) {
+      formData.append("ImageFile", editedImage);
+    }
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+    onEdit(announcementId, formData);
+    setIsEditModalOpen(false);
   };
 
   const handleCancel = () => {
@@ -92,8 +147,18 @@ const Announcement = ({
     setIsDeleteModalOpen(false);
   };
 
+  const handleLocationChange = (value) => {
+    geocodeByPlaceId(value.value.place_id)
+      .then((results) => {
+        const formattedAddress = results[0].formatted_address;
+        setEditedLocation(formattedAddress);
+      })
+      .catch((error) => {
+        console.error("Error fetching location details:", error);
+      });
+  };
+
   const isOwner = currentUserId === announcementUserId;
-  console.log("Owner: ", isOwner, currentUserId, announcementUserId);
 
   return (
     <Container
@@ -246,28 +311,143 @@ const Announcement = ({
         <ModalContent>
           <ModalHeader>Edit Announcement</ModalHeader>
           <ModalBody>
-            <Input
-              placeholder="Title"
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              mb={3}
-            />
-            <Textarea
-              placeholder="Content"
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-              mb={3}
-            />
-            <Button as="label" variant="outline" leftIcon={<FaUpload />}>
-              Upload Image
-              <input type="file" hidden onChange={handleImageChange} />
-            </Button>
+            <Box
+              as="form"
+              mt={2}
+              overflow="auto"
+              maxH="70vh"
+              width="100%"
+              maxWidth={600}
+              display="flex"
+              flexDirection="column"
+            >
+              <FormControl mb={4} isRequired>
+                <FormLabel>Announcement Type</FormLabel>
+                <Select
+                  placeholder="Announcement Type"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                >
+                  <option value="Lost">Lost</option>
+                  <option value="Found">Found</option>
+                  <option value="For Adoption">For Adoption</option>
+                </Select>
+              </FormControl>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Type</FormLabel>
+                <Select
+                  placeholder="Type"
+                  value={editedAnimalType}
+                  onChange={(e) => setEditedAnimalType(e.target.value)}
+                >
+                  <option value="Dog">Dog</option>
+                  <option value="Cat">Cat</option>
+                  <option value="Other">Other</option>
+                </Select>
+              </FormControl>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Breed</FormLabel>
+                <Select
+                  placeholder="Breed"
+                  value={editedAnimalBreed}
+                  onChange={(e) => setEditedAnimalBreed(e.target.value)}
+                >
+                  {animalType === "Dog" &&
+                    dogBreeds.map((breed) => (
+                      <option key={breed.id} value={breed.name}>
+                        {breed.name}
+                      </option>
+                    ))}
+                  {animalType === "Cat" &&
+                    catBreeds.map((breed) => (
+                      <option key={breed.id} value={breed.name}>
+                        {breed.name}
+                      </option>
+                    ))}
+                </Select>
+              </FormControl>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Gender</FormLabel>
+                <Select
+                  placeholder="Gender"
+                  value={editedAnimalGender}
+                  onChange={(e) => setEditedAnimalGender(e.target.value)}
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </Select>
+              </FormControl>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Location</FormLabel>
+                <GooglePlacesAutocomplete
+                  apiKey={import.meta.env.VITE_GOOGLE_API_KEY}
+                  selectProps={{
+                    editedLocation,
+                    onChange: handleLocationChange,
+                  }}
+                  placeholder="Search for a location"
+                  fetchDetails={true}
+                  styles={{
+                    container: (provided) => ({
+                      ...provided.container,
+                      border: "1px solid #ccc",
+                      borderRadius: "5px",
+                      padding: "10px",
+                      boxShadow: "0px 0px 10px 0px rgba(0, 0, 0, 0.1)",
+                    }),
+                    input: (provided) => ({
+                      ...provided.input,
+                      padding: "10px",
+                      fontSize: "16px",
+                      borderRadius: "5px",
+                      border: "1px solid #ccc",
+                    }),
+                    option: (provided, state) => ({
+                      ...provided.option,
+                      color: "black",
+                      fontSize: "16px",
+                      padding: "10px",
+                      borderRadius: "5px",
+                      cursor: "pointer",
+                    }),
+                  }}
+                />
+              </FormControl>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Age</FormLabel>
+                <Input
+                  placeholder="Age"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                />
+              </FormControl>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Color</FormLabel>
+                <Input
+                  placeholder="Color"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                />
+              </FormControl>
+              <FormControl mb={4} isRequired>
+                <FormLabel>Date Lost/Found</FormLabel>
+                <Input
+                  type="date"
+                  value={dateLostFound}
+                  onChange={(e) => setDateLostFound(e.target.value)}
+                />
+              </FormControl>
+              <Button as="label" variant="outline" leftIcon={<FaUpload />}>
+                Upload Image
+                <input type="file" hidden onChange={handleImageChange} />
+              </Button>
+            </Box>
           </ModalBody>
           <ModalFooter>
             <Button mr={3} onClick={handleEditModalClose}>
               Cancel
             </Button>
-            <Button colorScheme="blue" onClick={handleEditSave}>
+            <Button colorScheme="blue" onClick={handleSave}>
               Save
             </Button>
           </ModalFooter>

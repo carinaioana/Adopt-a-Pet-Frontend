@@ -70,6 +70,11 @@ export const AuthProvider = ({ children }) => {
           username: response.data.userName,
           name: response.data.name,
           email: response.data.email,
+          phoneNumber: response.data.phoneNumber,
+          location: response.data.location,
+          profilePhoto: response.data.profilePhoto,
+          description: response.data.description,
+          birthDate: response.data.birthDate,
         };
 
         console.log("Updating userDetails:", userDetails);

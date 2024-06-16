@@ -123,6 +123,35 @@ const AnnouncementList = () => {
     handleCloseModal();
   };
 
+  const handleEditAnnouncement = async (announcementId, formData) => {
+    const token = localStorage.getItem("authToken");
+    console.log(formData);
+    try {
+      setIsLoading(true);
+      const response = await axios.put(
+        `https://localhost:7141/api/v1/Announc/${announcementId}`,
+        formData, // Directly use FormData object received from the modal
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      if (response.status === 200) {
+        showSuccess("Announcement edited successfully");
+        await fetchAnnouncements();
+      } else {
+        console.error("Failed to edit announcement:", response.data);
+        showError("Failed to edit announcement");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+    handleCloseModal();
+  };
+
   const handleDeleteAnnouncement = async (announcementId) => {
     try {
       setIsLoading(true);
@@ -302,14 +331,10 @@ const AnnouncementList = () => {
           p={4}
           borderRadius="md"
           boxShadow="md"
-          display="grid"
-          gridTemplateColumns={{
-            base: "1fr",
-            sm: "1fr 1fr",
-            md: "1fr 1fr 1fr",
-            lg: "1fr 1fr 1fr 1fr",
-          }}
+          display="flex"
+          flexWrap="wrap"
           gap={4}
+          justifyContent="flex-start"
         >
           {Array.isArray(announcements) && announcements.length > 0 ? (
             announcements.map((announcement) => (
@@ -336,6 +361,7 @@ const AnnouncementList = () => {
                   animalBreed={announcement.animalBreed}
                   animalGender={announcement.animalGender}
                   location={announcement.location}
+                  onEdit={handleEditAnnouncement}
                   onDelete={() =>
                     handleDeleteAnnouncement(announcement.announcementId)
                   }

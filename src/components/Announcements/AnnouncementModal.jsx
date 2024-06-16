@@ -76,6 +76,7 @@ const AnnouncementModal = ({ open, onClose, onCreate }) => {
     if (selectedFile) {
       formData.append("ImageFile", selectedFile);
     }
+    console.log(formData);
     onCreate(formData);
   };
 
