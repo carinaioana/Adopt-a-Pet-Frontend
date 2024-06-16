@@ -42,6 +42,9 @@ const Announcement = ({
   announcementUserId,
   announcementId,
   imageUrl,
+  username,
+  userImage,
+  date,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
@@ -177,43 +180,81 @@ const Announcement = ({
         justifyContent="space-between"
         flex="1"
       >
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Box textAlign="center">
-            <Tag size="lg" variant="solid" colorScheme="blue" mb={2}>
-              {editedTitle}
-            </Tag>
-          </Box>
-          {isOwner && (
-            <Box display="flex" gap={2}>
-              {isEditing ? (
-                <>
-                  <IconButton
-                    icon={<FaSave />}
-                    aria-label="Save"
-                    onClick={handleSave}
-                  />
-                  <IconButton
-                    icon={<FaTimes />}
-                    aria-label="Cancel"
-                    onClick={handleCancel}
-                  />
-                </>
-              ) : (
-                <>
-                  <IconButton
-                    icon={<FaEdit />}
-                    aria-label="Edit"
-                    onClick={handleEditModalOpen}
-                  />
-                  <IconButton
-                    icon={<FaTrash />}
-                    aria-label="Delete"
-                    onClick={handleDeleteModalOpen}
-                  />
-                </>
-              )}
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          p={4}
+        >
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            width="100%"
+          >
+            <Box display="flex" alignItems="center" gap="2">
+              <Avatar src={userImage} />
+              <Text fontWeight="bold">{username}</Text>
             </Box>
-          )}
+
+            {isOwner && (
+              <Box display="flex" gap={2}>
+                {isEditing ? (
+                  <>
+                    <IconButton
+                      icon={<FaSave />}
+                      aria-label="Save"
+                      onClick={handleSave}
+                    />
+                    <IconButton
+                      icon={<FaTimes />}
+                      aria-label="Cancel"
+                      onClick={handleCancel}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <IconButton
+                      icon={<FaEdit />}
+                      aria-label="Edit"
+                      onClick={handleEditModalOpen}
+                    />
+                    <IconButton
+                      icon={<FaTrash />}
+                      aria-label="Delete"
+                      onClick={handleDeleteModalOpen}
+                    />
+                  </>
+                )}
+              </Box>
+            )}
+          </Box>
+        </Box>
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          width="100%"
+          mt={4}
+        >
+          <Tag
+            size="lg"
+            variant="solid"
+            colorScheme={
+              editedTitle === "Lost"
+                ? "red"
+                : editedTitle === "Found"
+                  ? "teal"
+                  : "orange"
+            }
+            flexShrink={0}
+          >
+            {editedTitle}
+          </Tag>
+          <Text fontSize="sm" color="gray.500" textAlign="right">
+            Date Created: {date}
+          </Text>
         </Box>
       </Box>
       {imageUrl && (

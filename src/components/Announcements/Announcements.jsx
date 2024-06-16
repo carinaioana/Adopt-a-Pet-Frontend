@@ -20,7 +20,6 @@ import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
 import { useLoading } from "../context/LoadingContext.jsx";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
-import { geocodeByPlaceId, getLatLng } from "react-google-places-autocomplete";
 
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -75,7 +74,11 @@ const AnnouncementList = () => {
               },
             },
           );
-          return { ...announcement, userName: userResponse.data.name };
+          return {
+            ...announcement,
+            userName: userResponse.data.name,
+            userImage: userResponse.data.profilePhoto,
+          };
         }),
       );
 
@@ -106,11 +109,10 @@ const AnnouncementList = () => {
       );
 
       if (response.data.success) {
-        console.log("Announcement created successfully");
-        // Optionally, refresh the announcements list to include the new announcement
+        showSuccess("Announcement created successfully");
         fetchAnnouncements();
       } else {
-        console.error(
+        showError(
           "Failed to create announcement:",
           response.data.validationsErrors,
         );
@@ -357,6 +359,7 @@ const AnnouncementList = () => {
                   announcementUserId={announcement.createdBy}
                   announcementId={announcement.announcementId}
                   imageUrl={announcement.imageUrl}
+                  userImage={announcement.userImage}
                   animalType={announcement.animalType}
                   animalBreed={announcement.animalBreed}
                   animalGender={announcement.animalGender}
