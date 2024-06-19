@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaEdit, FaSave, FaTimes, FaTrash, FaUpload } from "react-icons/fa";
+import {FaEdit, FaEllipsisV, FaSave, FaTimes, FaTrash, FaUpload} from "react-icons/fa";
 import {
   Avatar,
   Box,
@@ -22,12 +22,13 @@ import {
   FormLabel,
   Select,
   Heading,
-  Progress,
+  Progress, Menu, MenuButton, MenuList, MenuItem,
 } from "@chakra-ui/react";
 import GooglePlacesAutocomplete, {
   geocodeByPlaceId,
 } from "react-google-places-autocomplete";
 import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
 const Announcement = ({
   title,
@@ -64,6 +65,8 @@ const Announcement = ({
   const [selectedFile, setSelectedFile] = useState(null);
   const [dogBreeds, setDogBreeds] = useState([]);
   const [catBreeds, setCatBreeds] = useState([]);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchDogBreeds = async () => {
@@ -173,89 +176,83 @@ const Announcement = ({
       overflow="hidden"
       mb={4}
     >
-      <Box
-        p={4}
-        display="flex"
-        flexDirection="column"
-        justifyContent="space-between"
-        flex="1"
-      >
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          p={4}
-        >
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            width="100%"
+     <Box
+  p={4}
+  display="flex"
+  flexDirection="column"
+  justifyContent="space-between"
+  flex="1"
+  flexWrap="wrap"
+>
+  <Box
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+    p={4}
+  >
+   <Box
+  display="flex"
+  alignItems="center"
+  justifyContent="space-between"
+  width="100%"
+>
+  <Box display="flex" alignItems="center">
+    <Avatar src={userImage} />
+    <Box ml="2">
+      <Text fontWeight="bold">{username}</Text>
+      <Text fontSize="sm" color="gray.500">{date}</Text>
+    </Box>
+  </Box>
+  {isOwner && (
+    <Box display="flex" position="relative" ml="auto">
+      <Menu>
+        <MenuButton
+          as={IconButton}
+          icon={<FaEllipsisV />}
+          aria-label="Options"
+          size="sm"
+        />
+        <MenuList>
+          <MenuItem icon={<FaEdit />} onClick={handleEditModalOpen}>
+            Edit
+          </MenuItem>
+          <MenuItem
+            icon={<FaTrash />}
+            onClick={handleDeleteModalOpen}
+            color="red.500"
+            _hover={{ bg: "red.100" }}
           >
-            <Box display="flex" alignItems="center" gap="2">
-              <Avatar src={userImage} />
-              <Text fontWeight="bold">{username}</Text>
-            </Box>
-
-            {isOwner && (
-              <Box display="flex" gap={2}>
-                {isEditing ? (
-                  <>
-                    <IconButton
-                      icon={<FaSave />}
-                      aria-label="Save"
-                      onClick={handleSave}
-                    />
-                    <IconButton
-                      icon={<FaTimes />}
-                      aria-label="Cancel"
-                      onClick={handleCancel}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <IconButton
-                      icon={<FaEdit />}
-                      aria-label="Edit"
-                      onClick={handleEditModalOpen}
-                    />
-                    <IconButton
-                      icon={<FaTrash />}
-                      aria-label="Delete"
-                      onClick={handleDeleteModalOpen}
-                    />
-                  </>
-                )}
-              </Box>
-            )}
-          </Box>
-        </Box>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          width="100%"
-          mt={4}
-        >
-          <Tag
-            size="lg"
-            variant="solid"
-            colorScheme={
-              editedTitle === "Lost"
-                ? "red"
-                : editedTitle === "Found"
-                  ? "teal"
-                  : "orange"
-            }
-            flexShrink={0}
-          >
-            {editedTitle}
-          </Tag>
-          <Text fontSize="sm" color="gray.500" textAlign="right">
-            Date Created: {date}
-          </Text>
-        </Box>
+            Delete
+          </MenuItem>
+        </MenuList>
+      </Menu>
+    </Box>
+  )}
+</Box>
+  </Box>
+  <Box
+    display="flex"
+    alignItems="center"
+    justifyContent="space-between"
+    width="100%"
+    mt="4"
+  >
+    <Tag
+      size="lg"
+      variant="solid"
+      colorScheme={
+        editedTitle === "Lost"
+          ? "red"
+          : editedTitle === "Found"
+            ? "teal"
+            : "orange"
+      }
+      flexShrink={0}
+    >
+      {editedTitle}
+    </Tag>
+  </Box>
       </Box>
       {imageUrl && (
         <Box
@@ -301,11 +298,18 @@ const Announcement = ({
             <strong>Location:</strong> {location}
           </Text>
         )}
-        <Text mt={4}>
+        {/*<Text mt={4}>
           {editedContent.split(", ").map((line, index) => (
             <Box key={index}>{line}</Box>
           ))}
-        </Text>
+        </Text>*/}
+        <Button
+            mt={4}
+            colorScheme="blue"
+            onClick={() => navigate(`/announcement/${announcementId}`)}
+        >
+          View Details
+        </Button>
       </Box>
       <Modal isOpen={isImageModalOpen} onClose={handleImageModalClose}>
         <ModalOverlay />

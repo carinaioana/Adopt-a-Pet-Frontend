@@ -1,9 +1,6 @@
-import { HamburgerIcon, MoonIcon, SunIcon } from "@chakra-ui/icons";
 import {
-  Box,
   Flex,
   Heading,
-  IconButton,
   Spacer,
   useColorMode,
   useDisclosure,
@@ -21,13 +18,13 @@ const Header = ({ isLoggedIn }) => {
       align="center"
       justify="space-between"
       wrap="wrap"
-      padding="1.5rem"
+      padding={{ base: "1rem", md: "1.5rem" }} // Adjust padding for mobile
       bg={colorMode === "light" ? "gray.100" : "gray.800"}
       color={colorMode === "light" ? "gray.600" : "gray.200"}
       boxShadow="md"
       width="100%" // This line makes the Flex component stretch the whole width
     >
-      <Heading as="h1" size="lg" letterSpacing={"-.1rem"}>
+      <Heading as="h1" size="lg" letterSpacing={"-.1rem"} onClick={() => window.location.href = "/"}>
         Adopt A Pet
       </Heading>
       <Spacer />

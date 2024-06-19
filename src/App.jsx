@@ -12,6 +12,7 @@ import PetDetailsPage from "./components/PetMedicalHistory.jsx";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import { AuthProvider } from "./components/context/AuthContext.jsx";
+import AnnouncementDetails from "./components/Announcements/AnnouncementDetails.jsx";
 
 const App = () => {
   const { authToken, isDarkMode, toggleDarkMode, isLoading } = useAuth();
@@ -42,7 +43,9 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route
+            <Route path="/announcement/:id" element={<AnnouncementDetails />} />
+
+            <Route
             path="/profile"
             element={
               <ProtectedRoute>

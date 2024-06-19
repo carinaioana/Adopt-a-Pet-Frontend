@@ -429,7 +429,7 @@ const PetDetailsPage = () => {
                   {selectedPet.animalBreed || "Unknown"}
                 </ListItem>
                 <ListItem>
-                  <Text fontWeight="bold">Sex:</Text>{" "}
+                  <Text fontWeight="bold">Gender:</Text>{" "}
                   {selectedPet.animalSex
                     ? selectedPet.animalSex.charAt(0).toUpperCase() +
                       selectedPet.animalSex.slice(1)

@@ -103,6 +103,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
       try {
         const response = await axios.get("https://api.thedogapi.com/v1/breeds");
         setDogBreeds(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error("Error fetching dog breeds:", error);
       }
@@ -154,7 +155,9 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 },
               },
             );
-            return { ...announcement, userName: userResponse.data.name };
+            return { ...announcement,
+              userName: userResponse.data.name,
+              userImage: userResponse.data.profilePhoto};
           }),
         );
         setAnnouncements(announcementsWithUser);
@@ -513,7 +516,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                             </Select>
                           </FormControl>
                           <FormControl mb={4}>
-                            <FormLabel>Sex</FormLabel>
+                            <FormLabel>Gender</FormLabel>
                             <Select
                               value={selectedPet.sex}
                               onChange={(e) => {
@@ -650,7 +653,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           <Text>Age: {selectedPet.age}</Text>
                           <Text>Type: {selectedPet.type}</Text>
                           <Text>Breed: {selectedPet.breed}</Text>
-                          <Text>Sex: {selectedPet.sex}</Text>
+                          <Text>Gender: {selectedPet.sex}</Text>
                           <Text>Description: {selectedPet.description}</Text>
                           <Box mt={2}>
                             <Text>Traits:</Text>
@@ -760,7 +763,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                   </Select>
                 </FormControl>
                 <FormControl mb={4}>
-                  <FormLabel>Sex</FormLabel>
+                  <FormLabel>Gender</FormLabel>
                   <Select
                     value={newPet.sex}
                     onChange={(e) =>
@@ -861,62 +864,67 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
             </ModalContent>
           </Modal>
         </Box>
-        <Box borderWidth="1px" borderRadius="md" p={4} boxShadow="md">
-          <Box mb={4}>
-            <Heading as="h2" size="xl">
-              My Announcements
-            </Heading>
-          </Box>
-          <Box
-            overflowY="auto"
-            maxH="70vh"
-            p={4}
-            borderRadius="md"
-            boxShadow="md"
-            display="flex"
-            flexWrap="wrap"
-            gap={4}
-            justifyContent="center"
-          >
-            {Array.isArray(announcements) && announcements.length > 0 ? (
-              announcements.map((announcement) => (
-                <Box
-                  key={announcement.announcementId}
-                  border="1px solid"
-                  borderColor="gray.200"
-                  borderRadius="md"
-                  p={4}
-                  boxShadow="sm"
-                >
-                  <Announcement
-                    title={announcement.announcementTitle}
-                    content={announcement.announcementDescription}
-                    date={new Date(
-                      announcement.announcementDate,
-                    ).toLocaleString("en-UK")}
-                    username={announcement.userName}
-                    currentUserId={user.id}
-                    announcementUserId={announcement.createdBy}
-                    announcementId={announcement.announcementId}
-                    imageUrl={announcement.imageUrl}
-                    animalType={announcement.animalType}
-                    animalBreed={announcement.animalBreed}
-                    animalGender={announcement.animalGender}
-                    location={announcement.location}
-                    onEdit={handleEditAnnouncement}
-                    onDelete={() =>
-                      handleDeleteAnnouncement(announcement.announcementId)
-                    }
-                  />
-                </Box>
-              ))
-            ) : (
-              <Box textAlign="center" mt={8} color="gray.500">
-                No announcements found.
-              </Box>
+      <Box borderWidth="1px" borderRadius="md" p={4} boxShadow="md">
+  <Box mb={4}>
+    <Heading as="h2" size="xl">
+      My Announcements
+    </Heading>
+  </Box>
+  <Box
+    overflowY="auto"
+    maxH="70vh"
+    p={4}
+    borderRadius="md"
+    boxShadow="md"
+    display="flex"
+    flexWrap="wrap"
+    gap={4}
+    justifyContent="center"
+  >
+    {Array.isArray(announcements) && announcements.length > 0 ? (
+      announcements.map((announcement) => (
+        <Box
+          key={announcement.announcementId}
+          border="1px solid"
+          borderColor="gray.200"
+          borderRadius="md"
+          p={4}
+          boxShadow="sm"
+          width={{ base: "100%", md: "80%" }} // Make the announcement boxes wider and responsive
+          bg="white" // Modern look with white background
+          _hover={{ boxShadow: "lg", transform: "scale(1.02)" }} // Add hover effect
+          transition="all 0.2s"
+        >
+          <Announcement
+            title={announcement.announcementTitle}
+            content={announcement.announcementDescription}
+            date={new Date(announcement.announcementDate).toLocaleString(
+              "en-UK"
             )}
-          </Box>
+            username={announcement.userName}
+            currentUserId={user.id}
+            announcementUserId={announcement.createdBy}
+            announcementId={announcement.announcementId}
+            imageUrl={announcement.imageUrl}
+            userImage={announcement.userImage}
+            animalType={announcement.animalType}
+            animalBreed={announcement.animalBreed}
+            animalGender={announcement.animalGender}
+            location={announcement.location}
+            onEdit={handleEditAnnouncement}
+            onDelete={() =>
+              handleDeleteAnnouncement(announcement.announcementId)
+            }
+          />
         </Box>
+      ))
+    ) : (
+      <Box textAlign="center" mt={8} color="gray.500">
+        No announcements found.
+      </Box>
+    )}
+  </Box>
+</Box>
       </Container>
     </>
   );

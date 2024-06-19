@@ -39,7 +39,7 @@ import "../styles/App.css";
 import { AiOutlineLogout, AiOutlineLogin } from "react-icons/ai";
 import { useLocation, useParams } from "react-router-dom";
 
-const NavDrawer = ({}) => {
+const NavDrawer = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [isPetsAccordionExpanded, setIsPetsAccordionExpanded] = useState(false);
   const { logout, authToken, userDetails } = useAuth();
@@ -47,9 +47,9 @@ const NavDrawer = ({}) => {
   const [pets, setPets] = useState([]);
   const isLoggedIn = !!authToken;
   const { colorMode, toggleColorMode } = useColorMode();
-  console.log("HEREEE", userDetails);
   const location = useLocation();
   const { selectedPet } = location.state || {};
+
 
   useEffect(() => {
     const fetchPetProfiles = async () => {
@@ -120,7 +120,9 @@ const NavDrawer = ({}) => {
             {isLoggedIn && (
               <NavLink to="/profile">
                 <Box display="flex" alignItems="center">
-                  <Avatar src="src/assets/carina.jpg" mr="12px" />
+                  <Avatar src={userDetails.profilePhoto} mr="12px">
+  {!userDetails.profilePhoto && userDetails.name && userDetails.name.split(" ").map(n => n[0]).join("")}
+</Avatar>
                   {userDetails && <Text>Hello, {userDetails.name}</Text>}
                 </Box>
               </NavLink>

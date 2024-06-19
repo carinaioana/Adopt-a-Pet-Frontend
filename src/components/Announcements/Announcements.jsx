@@ -16,21 +16,24 @@ import {
   MenuList,
 } from "@chakra-ui/react";
 import { BiSortUp, BiSortDown, BiFilter } from "react-icons/bi";
-import { AddIcon, DeleteIcon } from "@chakra-ui/icons";
+import {AddIcon, CloseIcon, DeleteIcon} from "@chakra-ui/icons";
 import { useLoading } from "../context/LoadingContext.jsx";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
-
+import LostPetPhotoUpload from "./LostPetPhotoUpload.jsx";
+import { useNavigate } from 'react-router-dom';
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);
   const { userDetails } = useAuth();
   const { isLoading, setIsLoading } = useLoading();
   const [modalOpen, setModalOpen] = useState(false);
   const { showSuccess, showError } = useNotification();
+  const navigate = useNavigate();
+  const [originalAnnouncements, setOriginalAnnouncements] = useState([]);
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
   const [isSortedAsc, setIsSortedAsc] = useState(true);
-  const [, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const handleSearchChange = (event) => {
     const value = event.target.value.toLowerCase();
     setSearchQuery(value);
@@ -83,7 +86,7 @@ const AnnouncementList = () => {
       );
 
       setAnnouncements(announcementsWithUser);
-      console.log(announcementsWithUser);
+
     } catch (error) {
       console.error("Error fetching announcements:", error);
       showError("Failed to fetch announcements");
@@ -94,7 +97,7 @@ const AnnouncementList = () => {
 
   const handleCreateAnnouncement = async (formData) => {
     const token = localStorage.getItem("authToken");
-    console.log(formData);
+
     try {
       setIsLoading(true);
       const response = await axios.post(
@@ -127,7 +130,7 @@ const AnnouncementList = () => {
 
   const handleEditAnnouncement = async (announcementId, formData) => {
     const token = localStorage.getItem("authToken");
-    console.log(formData);
+
     try {
       setIsLoading(true);
       const response = await axios.put(
@@ -195,6 +198,20 @@ const AnnouncementList = () => {
       }),
     );
   };
+
+
+  const handleMatchesFound = (urls) => {
+  console.log("Matching URLs:", urls);
+
+
+  const matchedAnnouncements = announcements.filter((announcement) =>
+  urls.map(url => url.replace('s3.eu-north-1.amazonaws.com', 's3.amazonaws.com'))
+      .includes(announcement.imageUrl.trim().replace('s3.eu-north-1.amazonaws.com', 's3.amazonaws.com'))
+);
+
+    console.log("Matching Announcements:", matchedAnnouncements);
+  setAnnouncements(matchedAnnouncements);
+};
   return (
     <>
       {isLoading && <LoadingSpinner />}{" "}
@@ -230,154 +247,150 @@ const AnnouncementList = () => {
             Announcements
           </Box>
           <Box
-            display="flex"
-            flexDirection={{ base: "row", sm: "row" }} // Ensure filter and sort buttons are on the same row on mobile
-            alignItems="center"
-            gap={4}
-          >
-            <Menu closeOnSelect={false}>
-              <MenuButton
-                as={IconButton}
-                icon={<BiFilter />}
-                colorScheme="blue"
-              />
-              <MenuList>
-                <MenuItem
-                  onClick={(e) => {
-                    const selectAllCheckbox =
-                      document.getElementById("selectAll");
-                    selectAllCheckbox.checked = !selectAllCheckbox.checked;
-                    const checkboxes = document.querySelectorAll(
-                      "#lost, #found, #adopt",
-                    );
-                    checkboxes.forEach((checkbox) => {
-                      checkbox.checked = selectAllCheckbox.checked;
-                    });
-                    handleFilterChange(e); // Introduce handleFilterChange here
-                  }}
-                >
-                  <label htmlFor="selectAll">Select All</label>
-                  <input
-                    type="checkbox"
-                    id="selectAll"
-                    style={{ marginLeft: "auto" }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={(e) => {
-                    const checkbox = document.getElementById("lost");
-                    checkbox.checked = !checkbox.checked;
-                    handleFilterChange(e); // Introduce handleFilterChange here
-                  }}
-                >
-                  <label htmlFor="lost">Lost</label>
-                  <input
-                    type="checkbox"
-                    id="lost"
-                    style={{ marginLeft: "auto" }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={(e) => {
-                    const checkbox = document.getElementById("found");
-                    checkbox.checked = !checkbox.checked;
-                    handleFilterChange(e); // Introduce handleFilterChange here
-                  }}
-                >
-                  <label htmlFor="found">Found</label>
-                  <input
-                    type="checkbox"
-                    id="found"
-                    style={{ marginLeft: "auto" }}
-                  />
-                </MenuItem>
-                <MenuItem
-                  onClick={(e) => {
-                    const checkbox = document.getElementById("adopt");
-                    checkbox.checked = !checkbox.checked;
-                    handleFilterChange(e); // Introduce handleFilterChange here
-                  }}
-                >
-                  <label htmlFor="adopt">Adopt</label>
-                  <input
-                    type="checkbox"
-                    id="adopt"
-                    style={{ marginLeft: "auto" }}
-                  />
-                </MenuItem>
-              </MenuList>
-            </Menu>
-            <IconButton
-              aria-label="Sort Announcements"
-              icon={isSortedAsc ? <BiSortUp /> : <BiSortDown />}
-              onClick={handleSort}
-              colorScheme="blue"
-            />
-            <Input
-              size="md"
-              placeholder="Search Announcements"
-              onChange={handleSearchChange}
-              borderColor="blue.500"
-            />
-            <IconButton
-              aria-label="Add Announcement"
-              icon={<AddIcon />}
-              onClick={handleOpenModal}
-              colorScheme="blue"
-            />
-          </Box>
-        </Box>
-        <Box
-          overflowY="auto"
-          maxH="70vh"
-          p={4}
-          borderRadius="md"
-          boxShadow="md"
-          display="flex"
-          flexWrap="wrap"
-          gap={4}
-          justifyContent="flex-start"
-        >
-          {Array.isArray(announcements) && announcements.length > 0 ? (
-            announcements.map((announcement) => (
-              <Box
-                key={announcement.announcementId}
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="md"
-                p={4}
-                boxShadow="sm"
-              >
-                <Announcement
-                  title={announcement.announcementTitle}
-                  content={announcement.announcementDescription}
-                  date={new Date(announcement.announcementDate).toLocaleString(
-                    "en-UK",
-                  )}
-                  username={announcement.userName}
-                  currentUserId={userDetails.id}
-                  announcementUserId={announcement.createdBy}
-                  announcementId={announcement.announcementId}
-                  imageUrl={announcement.imageUrl}
-                  userImage={announcement.userImage}
-                  animalType={announcement.animalType}
-                  animalBreed={announcement.animalBreed}
-                  animalGender={announcement.animalGender}
-                  location={announcement.location}
-                  onEdit={handleEditAnnouncement}
-                  onDelete={() =>
-                    handleDeleteAnnouncement(announcement.announcementId)
-                  }
-                />
-              </Box>
-            ))
-          ) : (
-            <Box textAlign="center" mt={8} color="gray.500">
-              No announcements found.
-            </Box>
-          )}
-        </Box>
+  display="flex"
+  flexDirection={{ base: "column", sm: "row" }} // Ensure filter and sort buttons are on the same row on mobile
+  alignItems="center"
+  gap={4}
+>
+  <LostPetPhotoUpload onMatchesFound={handleMatchesFound} />
 
+  <Box display="flex" alignItems="center" gap={4}>
+  <Menu closeOnSelect={false}>
+    <MenuButton as={IconButton} icon={<BiFilter />} colorScheme="blue" />
+    <MenuList>
+      <MenuItem
+        onClick={(e) => {
+          const selectAllCheckbox = document.getElementById("selectAll");
+          selectAllCheckbox.checked = !selectAllCheckbox.checked;
+          const checkboxes = document.querySelectorAll("#lost, #found, #adopt");
+          checkboxes.forEach((checkbox) => {
+            checkbox.checked = selectAllCheckbox.checked;
+          });
+          handleFilterChange(e); // Introduce handleFilterChange here
+        }}
+      >
+        <label htmlFor="selectAll">Select All</label>
+        <input type="checkbox" id="selectAll" style={{ marginLeft: "auto" }} />
+      </MenuItem>
+      <MenuItem
+        onClick={(e) => {
+          const checkbox = document.getElementById("lost");
+          checkbox.checked = !checkbox.checked;
+          handleFilterChange(e); // Introduce handleFilterChange here
+        }}
+      >
+        <label htmlFor="lost">Lost</label>
+        <input type="checkbox" id="lost" style={{ marginLeft: "auto" }} />
+      </MenuItem>
+      <MenuItem
+        onClick={(e) => {
+          const checkbox = document.getElementById("found");
+          checkbox.checked = !checkbox.checked;
+          handleFilterChange(e); // Introduce handleFilterChange here
+        }}
+      >
+        <label htmlFor="found">Found</label>
+        <input type="checkbox" id="found" style={{ marginLeft: "auto" }} />
+      </MenuItem>
+      <MenuItem
+        onClick={(e) => {
+          const checkbox = document.getElementById("adopt");
+          checkbox.checked = !checkbox.checked;
+          handleFilterChange(e); // Introduce handleFilterChange here
+        }}
+      >
+        <label htmlFor="adopt">Adopt</label>
+        <input type="checkbox" id="adopt" style={{ marginLeft: "auto" }} />
+      </MenuItem>
+    </MenuList>
+  </Menu>
+
+  <IconButton
+    aria-label="Sort Announcements"
+    icon={isSortedAsc ? <BiSortUp /> : <BiSortDown />}
+    onClick={handleSort}
+    colorScheme="blue"
+  />
+  <Input
+    size="md"
+    placeholder="Search Announcements"
+    onChange={handleSearchChange}
+    borderColor="blue.500"
+  />
+  <IconButton
+    aria-label="Add Announcement"
+    icon={<AddIcon />}
+    onClick={handleOpenModal}
+    colorScheme="blue"
+  />
+{/*  {searchQuery && (*/}
+{/*  <Button*/}
+{/*    rightIcon={<CloseIcon />}*/}
+{/*    colorScheme="red"*/}
+{/*    variant="outline"*/}
+{/*    onClick={() => {*/}
+{/*      setSearchQuery("");*/}
+{/*      fetchAnnouncements(); // Reset filters and fetch all announcements*/}
+{/*    }}*/}
+{/*    display="flex"*/}
+{/*    alignItems="center"*/}
+{/*    justifyContent="center"*/}
+{/*    whiteSpace="nowrap"*/}
+{/*  >*/}
+{/*    Remove Filters*/}
+{/*  </Button>*/}
+{/*)}*/}
+</Box>
+</Box>
+        </Box>
+       <Box
+  overflowY="auto"
+  maxH="80vh"
+  p={4}
+  borderRadius="md"
+  boxShadow="md"
+  display="flex"
+  flexWrap="wrap"
+  gap={4}
+  justifyContent="flex-start"
+>
+  {Array.isArray(announcements) && announcements.length > 0 ? (
+    announcements.map((announcement) => (
+        <Box
+            key={announcement.announcementId}
+            border="1px solid"
+            borderColor="gray.200"
+            borderRadius="md"
+            p={4}
+            boxShadow="sm"
+            _hover={{ boxShadow: "lg", transform: "scale(1.02)", cursor: "pointer" }}
+        >
+          <Announcement
+              title={announcement.announcementTitle}
+              content={announcement.announcementDescription}
+              date={new Date(announcement.announcementDate).toLocaleString("en-UK")}
+              username={announcement.userName}
+              currentUserId={userDetails.id}
+              announcementUserId={announcement.createdBy}
+              announcementId={announcement.announcementId}
+              imageUrl={announcement.imageUrl}
+              userImage={announcement.userImage}
+              animalType={announcement.animalType}
+              animalBreed={announcement.animalBreed}
+              animalGender={announcement.animalGender}
+              location={announcement.location}
+              onEdit={handleEditAnnouncement}
+              onDelete={() => handleDeleteAnnouncement(announcement.announcementId)}
+          />
+
+        </Box>
+    ))
+  ) : (
+    <Box textAlign="center" mt={8} color="gray.500">
+      No announcements found.
+    </Box>
+  )}
+</Box>
         <AnnouncementModal
           open={modalOpen}
           onClose={handleCloseModal}
