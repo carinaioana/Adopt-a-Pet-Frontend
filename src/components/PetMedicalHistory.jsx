@@ -295,7 +295,7 @@ const PetDetailsPage = () => {
           },
         },
       );
-      if (response.status === 200) {
+      if (response.data.success === true) {
         showSuccess("Observation added successfully");
       }
 
@@ -312,7 +312,7 @@ const PetDetailsPage = () => {
     const authToken = localStorage.getItem("authToken");
     try {
       setIsLoading(true);
-      await axios.post(
+      const response = await axios.post(
         "https://localhost:7141/api/v1/Vaccination",
         {
           date: newVaccineData.date,
@@ -325,7 +325,7 @@ const PetDetailsPage = () => {
           },
         },
       );
-      if (response.status === 200) {
+      if (response.data.success === true) {
         showSuccess("Vaccine added successfully");
       }
 
@@ -376,8 +376,8 @@ const PetDetailsPage = () => {
         centerContent
         minWidth="80vw"
         overflow="hidden"
-        p="2rem"
-        mt="1rem"
+        p={{ base: "1rem", md: "2rem" }}
+        mt={{ base: "0.5rem", md: "1rem" }}
         borderRadius="12px"
         border="1px solid"
         borderColor="gray.200"
@@ -391,7 +391,8 @@ const PetDetailsPage = () => {
           position="relative"
           className="pet-details-container"
           width={{ base: "100%", md: "40%" }}
-          mb={{ base: "2rem", md: "0" }}
+          mb={{ base: "1rem", md: "0" }}
+          minHeight={{ base: "auto", md: "100%" }}
         >
           <Box className="pet-details-header">
             <Avatar

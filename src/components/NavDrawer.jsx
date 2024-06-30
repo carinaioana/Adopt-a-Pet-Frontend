@@ -50,7 +50,6 @@ const NavDrawer = () => {
   const location = useLocation();
   const { selectedPet } = location.state || {};
 
-
   useEffect(() => {
     const fetchPetProfiles = async () => {
       try {
@@ -117,12 +116,17 @@ const NavDrawer = () => {
         <DrawerContent>
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
-            {isLoggedIn && (
+            {isLoggedIn && userDetails && (
               <NavLink to="/profile">
                 <Box display="flex" alignItems="center">
-                  <Avatar src={userDetails.profilePhoto} mr="12px">
-  {!userDetails.profilePhoto && userDetails.name && userDetails.name.split(" ").map(n => n[0]).join("")}
-</Avatar>
+                  <Avatar src={userDetails.profilePhoto || ""} mr="12px">
+                    {!userDetails.profilePhoto &&
+                      userDetails.name &&
+                      userDetails.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                  </Avatar>
                   {userDetails && <Text>Hello, {userDetails.name}</Text>}
                 </Box>
               </NavLink>

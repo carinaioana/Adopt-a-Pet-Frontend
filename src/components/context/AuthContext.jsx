@@ -21,6 +21,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
+import LoadingSpinner from "../LoadingSpinner.jsx";
 
 const AuthContext = createContext(null);
 
@@ -153,11 +154,7 @@ export const AuthProvider = ({ children }) => {
         isLoading,
       }}
     >
-      {isLoading ? (
-        <CircularProgress isIndeterminate color="green.300" />
-      ) : (
-        children
-      )}
+      {isLoading ? <LoadingSpinner></LoadingSpinner> : children}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>

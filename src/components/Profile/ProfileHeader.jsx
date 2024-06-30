@@ -32,7 +32,9 @@ import { useNotification } from "../context/NotificationContext.jsx";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 
 const ProfileHeader = ({ user, onUserUpdate }) => {
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(
+    user.userLocation?.selectedLocation || null,
+  );
   const { showSuccess, showError } = useNotification();
   const { isLoading, setIsLoading } = useLoading();
   const [openModal, setOpenModal] = useState(false);
@@ -45,12 +47,17 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
     geocodeByPlaceId(value.value.place_id)
       .then((results) => getLatLng(results[0]))
       .then(({ lat, lng }) => {
+        const newLocation = {
+          selectedLocation: value.label,
+          lat,
+          lng,
+        };
         onUserUpdate({
           ...user,
-          userLocation: { selectedLocation: value.label },
+          userLocation: newLocation,
         });
+        setSelectedLocation(value);
       });
-    setSelectedLocation(value);
   };
   const handleToggleModal = () => {
     setOpenModal(!openModal);
@@ -225,6 +232,7 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
           mt={[2, 4, 8]}
           borderRadius="md"
           boxShadow="md"
+          height="90%"
         >
           <Card variant="outline">
             <CardBody

@@ -28,7 +28,10 @@ import {
   TagCloseButton,
   TagLabel,
   Text,
+  VStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
+import ChakraCarousel from "../ChakraCarousel.jsx";
 import { AddIcon, DeleteIcon, Icon } from "@chakra-ui/icons";
 import { useLoading } from "../context/LoadingContext.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
@@ -45,6 +48,8 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [dogBreeds, setDogBreeds] = useState([]);
   const [catBreeds, setCatBreeds] = useState([]);
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
   const [newPet, setNewPet] = useState({
     name: "",
     age: "",
@@ -155,9 +160,11 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 },
               },
             );
-            return { ...announcement,
+            return {
+              ...announcement,
               userName: userResponse.data.name,
-              userImage: userResponse.data.profilePhoto};
+              userImage: userResponse.data.profilePhoto,
+            };
           }),
         );
         setAnnouncements(announcementsWithUser);
@@ -325,260 +332,94 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
     <>
       {" "}
       {isLoading && <LoadingSpinner />}{" "}
-      <Container
-        maxW="container.xl"
-        p={4}
-        mt={8}
-        borderRadius="md"
-        boxShadow="md"
-      >
-        <Box borderWidth="1px" borderRadius="md" p={4} boxShadow="md" mt={4}>
-          <Box mb={4}>
-            <Heading as="h2" size="xl">
+      <Container maxW="6xl" p={4} mt={8} borderRadius="md" boxShadow="md">
+        <VStack spacing={8} align="stretch">
+          <Box
+            borderWidth="1px"
+            borderRadius="lg"
+            p={6}
+            boxShadow="md"
+            bg={bgColor}
+          >
+            <Heading as="h2" size="xl" mb={6}>
               Pet Profiles
             </Heading>
-          </Box>
-          <Stack
-            direction={{ base: "column", sm: "row" }}
-            spacing={4}
-            alignItems="center"
-            width="100%"
-            flexWrap="wrap" // Added to allow wrapping
-            overflowX="auto"
-          >
-            {user.petProfiles.map((pet, index) => (
-              <Tag
-                key={index}
-                size="lg"
-                borderRadius="xl"
-                variant="subtle"
+            <Stack
+              direction={{ base: "column", sm: "row" }}
+              spacing={4}
+              alignItems="center"
+              width="100%"
+              flexWrap="wrap"
+              overflowX="auto"
+            >
+              {user.petProfiles.map((pet, index) => (
+                <Tag
+                  key={index}
+                  size="lg"
+                  borderRadius="full"
+                  variant="subtle"
+                  colorScheme="teal"
+                  cursor="pointer"
+                  onClick={() => handleOpenDialog(pet)}
+                  p={2}
+                  m={2}
+                  _hover={{
+                    boxShadow: "md",
+                    transform: "translateY(-2px)",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <Avatar
+                    name={pet.name}
+                    src={pet.image}
+                    size="sm"
+                    ml={-1}
+                    mr={2}
+                    border="2px solid"
+                    borderColor={borderColor}
+                  />
+                  <TagLabel fontWeight="bold">{`${pet.name} (${pet.type})`}</TagLabel>
+                </Tag>
+              ))}
+              <IconButton
                 colorScheme="teal"
-                cursor="pointer"
-                onClick={() => handleOpenDialog(pet)}
-                p={2}
-                m="1rem"
-                _hover={{
-                  border: "2px solid teal",
-                  transform: "scale(1.05)",
-                  transition: "transform 0.2s",
-                  position: "relative",
-                  zIndex: 999,
-                }}
-              >
-                <Avatar
-                  name={pet.name}
-                  src={pet.image}
-                  size="sm"
-                  ml={-1}
-                  mr={2}
-                  border="2px solid white"
-                />
-                <TagLabel fontWeight="bold">{`${pet.name} (${pet.type})`}</TagLabel>
-              </Tag>
-            ))}
-            <IconButton
-              colorScheme="teal"
-              aria-label="Add new pet"
-              icon={<AddIcon />}
-              onClick={handleOpenAddPetDialog}
-              boxShadow="md"
-              _hover={{ boxShadow: "lg" }}
-            />
-          </Stack>
+                aria-label="Add new pet"
+                icon={<AddIcon />}
+                onClick={handleOpenAddPetDialog}
+                boxShadow="md"
+                _hover={{ boxShadow: "lg", transform: "translateY(-2px)" }}
+                transition="all 0.2s"
+              />
+            </Stack>
 
-          <Modal isOpen={openDialog} onClose={handleCloseDialog} size="md">
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>
-                {selectedPet ? `${selectedPet.name}'s Details` : ""}
-              </ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                {selectedPet && (
-                  <SimpleGrid columns={2} spacing={6}>
-                    <Box>
-                      <Avatar
-                        name={selectedPet.name}
-                        src={selectedPet.image}
-                        size="2xl"
-                      />
-                    </Box>
-                    <Box>
-                      {isEditMode ? (
-                        <>
-                          <FormControl mb={4}>
-                            <FormLabel>Name</FormLabel>
-                            <Input
-                              value={selectedPet.name}
-                              onChange={(e) => {
-                                const updatedPet = {
-                                  ...selectedPet,
-                                  name: e.target.value,
-                                };
-                                setSelectedPet(updatedPet);
-                                const updatedPetProfiles = user.petProfiles.map(
-                                  (pet) =>
-                                    pet.name === selectedPet.name
-                                      ? updatedPet
-                                      : pet,
-                                );
-                                onUserUpdate({
-                                  ...user,
-                                  petProfiles: updatedPetProfiles,
-                                });
-                              }}
-                            />
-                          </FormControl>
-                          <FormControl mb={4}>
-                            <FormLabel>Age</FormLabel>
-                            <Input
-                              type="number"
-                              value={selectedPet.age.toString()}
-                              onChange={(e) => {
-                                const updatedPet = {
-                                  ...selectedPet,
-                                  age: Number(e.target.value),
-                                };
-                                setSelectedPet(updatedPet);
-                                const updatedPetProfiles = user.petProfiles.map(
-                                  (pet) =>
-                                    pet.name === selectedPet.name
-                                      ? updatedPet
-                                      : pet,
-                                );
-                                onUserUpdate({
-                                  ...user,
-                                  petProfiles: updatedPetProfiles,
-                                });
-                              }}
-                            />
-                          </FormControl>
-                          <FormControl mb={4}>
-                            <FormLabel>Type</FormLabel>
-                            <Select
-                              value={selectedPet.type}
-                              onChange={(e) => {
-                                const updatedPet = {
-                                  ...selectedPet,
-                                  type: e.target.value,
-                                };
-                                setSelectedPet(updatedPet);
-                                const updatedPetProfiles = user.petProfiles.map(
-                                  (pet) =>
-                                    pet.name === selectedPet.name
-                                      ? updatedPet
-                                      : pet,
-                                );
-                                onUserUpdate({
-                                  ...user,
-                                  petProfiles: updatedPetProfiles,
-                                });
-                              }}
-                            >
-                              <option value="Dog">Dog</option>
-                              <option value="Cat">Cat</option>
-                            </Select>
-                          </FormControl>
-                          <FormControl mb={4}>
-                            <FormLabel>Breed</FormLabel>
-                            <Select
-                              value={selectedPet.breed}
-                              onChange={(e) => {
-                                const updatedPet = {
-                                  ...selectedPet,
-                                  breed: e.target.value,
-                                };
-                                setSelectedPet(updatedPet);
-                                const updatedPetProfiles = user.petProfiles.map(
-                                  (pet) =>
-                                    pet.name === selectedPet.name
-                                      ? updatedPet
-                                      : pet,
-                                );
-                                onUserUpdate({
-                                  ...user,
-                                  petProfiles: updatedPetProfiles,
-                                });
-                              }}
-                            >
-                              {selectedPet.type === "Dog" &&
-                                dogBreeds.map((breed) => (
-                                  <option key={breed.id} value={breed.name}>
-                                    {breed.name}
-                                  </option>
-                                ))}
-                              {selectedPet.type === "Cat" &&
-                                catBreeds.map((breed) => (
-                                  <option key={breed.id} value={breed.name}>
-                                    {breed.name}
-                                  </option>
-                                ))}
-                            </Select>
-                          </FormControl>
-                          <FormControl mb={4}>
-                            <FormLabel>Gender</FormLabel>
-                            <Select
-                              value={selectedPet.sex}
-                              onChange={(e) => {
-                                const updatedPet = {
-                                  ...selectedPet,
-                                  sex: e.target.value,
-                                };
-                                setSelectedPet(updatedPet);
-                                const updatedPetProfiles = user.petProfiles.map(
-                                  (pet) =>
-                                    pet.name === selectedPet.name
-                                      ? updatedPet
-                                      : pet,
-                                );
-                                onUserUpdate({
-                                  ...user,
-                                  petProfiles: updatedPetProfiles,
-                                });
-                              }}
-                            >
-                              <option value="Male">Male</option>
-                              <option value="Female">Female</option>
-                            </Select>
-                          </FormControl>
-                          <FormControl mb={4}>
-                            <FormLabel>Description</FormLabel>
-                            <Input
-                              value={selectedPet.description}
-                              onChange={(e) => {
-                                const updatedPet = {
-                                  ...selectedPet,
-                                  description: e.target.value,
-                                };
-                                setSelectedPet(updatedPet);
-                                const updatedPetProfiles = user.petProfiles.map(
-                                  (pet) =>
-                                    pet.name === selectedPet.name
-                                      ? updatedPet
-                                      : pet,
-                                );
-                                onUserUpdate({
-                                  ...user,
-                                  petProfiles: updatedPetProfiles,
-                                });
-                              }}
-                            />
-                          </FormControl>
-                          <FormControl mb={4}>
-                            <FormLabel>Traits</FormLabel>
-                            <Select
-                              placeholder="Select traits"
-                              onChange={(e) => {
-                                const selectedTrait = e.target.value;
-                                if (
-                                  !selectedPet.traits.includes(selectedTrait)
-                                ) {
+            <Modal isOpen={openDialog} onClose={handleCloseDialog} size="md">
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>
+                  {selectedPet ? `${selectedPet.name}'s Details` : ""}
+                </ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  {selectedPet && (
+                    <SimpleGrid columns={2} spacing={6}>
+                      <Box>
+                        <Avatar
+                          name={selectedPet.name}
+                          src={selectedPet.image}
+                          size="2xl"
+                        />
+                      </Box>
+                      <Box>
+                        {isEditMode ? (
+                          <>
+                            <FormControl mb={4}>
+                              <FormLabel>Name</FormLabel>
+                              <Input
+                                value={selectedPet.name}
+                                onChange={(e) => {
                                   const updatedPet = {
                                     ...selectedPet,
-                                    traits: [
-                                      ...selectedPet.traits,
-                                      selectedTrait,
-                                    ],
+                                    name: e.target.value,
                                   };
                                   setSelectedPet(updatedPet);
                                   const updatedPetProfiles =
@@ -591,340 +432,521 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                     ...user,
                                     petProfiles: updatedPetProfiles,
                                   });
-                                }
-                              }}
-                            >
-                              <option value="playful">Playful</option>
-                              <option value="loving">Loving</option>
-                              <option value="gourmand">Gourmand</option>
-                              <option value="energetic">Energetic</option>
-                              <option value="curious">Curious</option>
-                            </Select>
-                            <Box mt={2}>
-                              {selectedPet.traits.map((trait, index) => (
-                                <Tag
-                                  key={index}
-                                  size="md"
-                                  borderRadius="full"
-                                  variant="solid"
-                                  colorScheme={
-                                    [
-                                      "teal",
-                                      "blue",
-                                      "green",
-                                      "red",
-                                      "purple",
-                                      "orange",
-                                    ][Math.floor(Math.random() * 6)]
+                                }}
+                              />
+                            </FormControl>
+                            <FormControl mb={4}>
+                              <FormLabel>Age</FormLabel>
+                              <Input
+                                type="number"
+                                value={selectedPet.age.toString()}
+                                onChange={(e) => {
+                                  const updatedPet = {
+                                    ...selectedPet,
+                                    age: Number(e.target.value),
+                                  };
+                                  setSelectedPet(updatedPet);
+                                  const updatedPetProfiles =
+                                    user.petProfiles.map((pet) =>
+                                      pet.name === selectedPet.name
+                                        ? updatedPet
+                                        : pet,
+                                    );
+                                  onUserUpdate({
+                                    ...user,
+                                    petProfiles: updatedPetProfiles,
+                                  });
+                                }}
+                              />
+                            </FormControl>
+                            <FormControl mb={4}>
+                              <FormLabel>Type</FormLabel>
+                              <Select
+                                value={selectedPet.type}
+                                onChange={(e) => {
+                                  const updatedPet = {
+                                    ...selectedPet,
+                                    type: e.target.value,
+                                  };
+                                  setSelectedPet(updatedPet);
+                                  const updatedPetProfiles =
+                                    user.petProfiles.map((pet) =>
+                                      pet.name === selectedPet.name
+                                        ? updatedPet
+                                        : pet,
+                                    );
+                                  onUserUpdate({
+                                    ...user,
+                                    petProfiles: updatedPetProfiles,
+                                  });
+                                }}
+                              >
+                                <option value="Dog">Dog</option>
+                                <option value="Cat">Cat</option>
+                              </Select>
+                            </FormControl>
+                            <FormControl mb={4}>
+                              <FormLabel>Breed</FormLabel>
+                              <Select
+                                value={selectedPet.breed}
+                                onChange={(e) => {
+                                  const updatedPet = {
+                                    ...selectedPet,
+                                    breed: e.target.value,
+                                  };
+                                  setSelectedPet(updatedPet);
+                                  const updatedPetProfiles =
+                                    user.petProfiles.map((pet) =>
+                                      pet.name === selectedPet.name
+                                        ? updatedPet
+                                        : pet,
+                                    );
+                                  onUserUpdate({
+                                    ...user,
+                                    petProfiles: updatedPetProfiles,
+                                  });
+                                }}
+                              >
+                                {selectedPet.type === "Dog" &&
+                                  dogBreeds.map((breed) => (
+                                    <option key={breed.id} value={breed.name}>
+                                      {breed.name}
+                                    </option>
+                                  ))}
+                                {selectedPet.type === "Cat" &&
+                                  catBreeds.map((breed) => (
+                                    <option key={breed.id} value={breed.name}>
+                                      {breed.name}
+                                    </option>
+                                  ))}
+                              </Select>
+                            </FormControl>
+                            <FormControl mb={4}>
+                              <FormLabel>Gender</FormLabel>
+                              <Select
+                                value={selectedPet.sex}
+                                onChange={(e) => {
+                                  const updatedPet = {
+                                    ...selectedPet,
+                                    sex: e.target.value,
+                                  };
+                                  setSelectedPet(updatedPet);
+                                  const updatedPetProfiles =
+                                    user.petProfiles.map((pet) =>
+                                      pet.name === selectedPet.name
+                                        ? updatedPet
+                                        : pet,
+                                    );
+                                  onUserUpdate({
+                                    ...user,
+                                    petProfiles: updatedPetProfiles,
+                                  });
+                                }}
+                              >
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                              </Select>
+                            </FormControl>
+                            <FormControl mb={4}>
+                              <FormLabel>Description</FormLabel>
+                              <Input
+                                value={selectedPet.description}
+                                onChange={(e) => {
+                                  const updatedPet = {
+                                    ...selectedPet,
+                                    description: e.target.value,
+                                  };
+                                  setSelectedPet(updatedPet);
+                                  const updatedPetProfiles =
+                                    user.petProfiles.map((pet) =>
+                                      pet.name === selectedPet.name
+                                        ? updatedPet
+                                        : pet,
+                                    );
+                                  onUserUpdate({
+                                    ...user,
+                                    petProfiles: updatedPetProfiles,
+                                  });
+                                }}
+                              />
+                            </FormControl>
+                            <FormControl mb={4}>
+                              <FormLabel>Traits</FormLabel>
+                              <Select
+                                placeholder="Select traits"
+                                onChange={(e) => {
+                                  const selectedTrait = e.target.value;
+                                  if (
+                                    !selectedPet.traits.includes(selectedTrait)
+                                  ) {
+                                    const updatedPet = {
+                                      ...selectedPet,
+                                      traits: [
+                                        ...selectedPet.traits,
+                                        selectedTrait,
+                                      ],
+                                    };
+                                    setSelectedPet(updatedPet);
+                                    const updatedPetProfiles =
+                                      user.petProfiles.map((pet) =>
+                                        pet.name === selectedPet.name
+                                          ? updatedPet
+                                          : pet,
+                                      );
+                                    onUserUpdate({
+                                      ...user,
+                                      petProfiles: updatedPetProfiles,
+                                    });
                                   }
-                                  mr={2}
-                                  mt={2}
-                                >
-                                  <TagLabel>{trait}</TagLabel>
-                                  <TagCloseButton
-                                    onClick={() => {
-                                      const updatedPet = {
-                                        ...selectedPet,
-                                        traits: selectedPet.traits.filter(
-                                          (t) => t !== trait,
-                                        ),
-                                      };
-                                      setSelectedPet(updatedPet);
-                                      const updatedPetProfiles =
-                                        user.petProfiles.map((pet) =>
-                                          pet.name === selectedPet.name
-                                            ? updatedPet
-                                            : pet,
-                                        );
-                                      onUserUpdate({
-                                        ...user,
-                                        petProfiles: updatedPetProfiles,
-                                      });
-                                    }}
-                                  />
-                                </Tag>
-                              ))}
+                                }}
+                              >
+                                <option value="playful">Playful</option>
+                                <option value="loving">Loving</option>
+                                <option value="gourmand">Gourmand</option>
+                                <option value="energetic">Energetic</option>
+                                <option value="curious">Curious</option>
+                              </Select>
+                              <Box mt={2}>
+                                {selectedPet.traits.map((trait, index) => (
+                                  <Tag
+                                    key={index}
+                                    size="md"
+                                    borderRadius="full"
+                                    variant="solid"
+                                    colorScheme={
+                                      [
+                                        "teal",
+                                        "blue",
+                                        "green",
+                                        "red",
+                                        "purple",
+                                        "orange",
+                                      ][Math.floor(Math.random() * 6)]
+                                    }
+                                    mr={2}
+                                    mt={2}
+                                  >
+                                    <TagLabel>{trait}</TagLabel>
+                                    <TagCloseButton
+                                      onClick={() => {
+                                        const updatedPet = {
+                                          ...selectedPet,
+                                          traits: selectedPet.traits.filter(
+                                            (t) => t !== trait,
+                                          ),
+                                        };
+                                        setSelectedPet(updatedPet);
+                                        const updatedPetProfiles =
+                                          user.petProfiles.map((pet) =>
+                                            pet.name === selectedPet.name
+                                              ? updatedPet
+                                              : pet,
+                                          );
+                                        onUserUpdate({
+                                          ...user,
+                                          petProfiles: updatedPetProfiles,
+                                        });
+                                      }}
+                                    />
+                                  </Tag>
+                                ))}
+                              </Box>
+                            </FormControl>
+                          </>
+                        ) : (
+                          <>
+                            <Text>Name: {selectedPet.name}</Text>
+                            <Text>Age: {selectedPet.age}</Text>
+                            <Text>Type: {selectedPet.type}</Text>
+                            <Text>Breed: {selectedPet.breed}</Text>
+                            <Text>Gender: {selectedPet.sex}</Text>
+                            <Text>Description: {selectedPet.description}</Text>
+                            <Box mt={2}>
+                              <Text>Traits:</Text>
+                              {selectedPet.traits &&
+                              selectedPet.traits.length > 0 ? (
+                                selectedPet.traits.map((trait, index) => (
+                                  <Tag key={index} mr={2} mt={2}>
+                                    {trait}
+                                  </Tag>
+                                ))
+                              ) : (
+                                <Text>No traits added</Text>
+                              )}
                             </Box>
-                          </FormControl>
-                        </>
-                      ) : (
-                        <>
-                          <Text>Name: {selectedPet.name}</Text>
-                          <Text>Age: {selectedPet.age}</Text>
-                          <Text>Type: {selectedPet.type}</Text>
-                          <Text>Breed: {selectedPet.breed}</Text>
-                          <Text>Gender: {selectedPet.sex}</Text>
-                          <Text>Description: {selectedPet.description}</Text>
-                          <Box mt={2}>
-                            <Text>Traits:</Text>
-                            {selectedPet.traits &&
-                            selectedPet.traits.length > 0 ? (
-                              selectedPet.traits.map((trait, index) => (
-                                <Tag key={index} mr={2} mt={2}>
-                                  {trait}
-                                </Tag>
-                              ))
-                            ) : (
-                              <Text>No traits added</Text>
-                            )}
-                          </Box>
-                        </>
-                      )}
-                    </Box>
-                  </SimpleGrid>
-                )}
-              </ModalBody>
-              <ModalFooter>
-                <Button onClick={handleCloseDialog}>Close</Button>
-                {isEditMode ? (
-                  <Button colorScheme="teal" onClick={handleSaveChanges}>
-                    Save
-                  </Button>
-                ) : (
-                  <Button
+                          </>
+                        )}
+                      </Box>
+                    </SimpleGrid>
+                  )}
+                </ModalBody>
+                <ModalFooter>
+                  <Button onClick={handleCloseDialog}>Close</Button>
+                  {isEditMode ? (
+                    <Button colorScheme="teal" onClick={handleSaveChanges}>
+                      Save
+                    </Button>
+                  ) : (
+                    <Button
+                      ml={2}
+                      colorScheme="teal"
+                      onClick={() => setIsEditMode(true)}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  <IconButton
+                    colorScheme="red"
+                    aria-label="Delete pet"
+                    icon={<DeleteIcon />}
+                    onClick={() => handleOpenDeleteModal(selectedPet)}
                     ml={2}
-                    colorScheme="teal"
-                    onClick={() => setIsEditMode(true)}
-                  >
-                    Edit
-                  </Button>
-                )}
-                <IconButton
-                  colorScheme="red"
-                  aria-label="Delete pet"
-                  icon={<DeleteIcon />}
-                  onClick={() => handleOpenDeleteModal(selectedPet)}
-                  ml={2}
-                />
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-          <Modal
-            isOpen={openAddPetDialog}
-            onClose={() => setOpenAddPetDialog(false)}
-            size="md"
-          >
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Add New Pet</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <FormControl mb={4}>
-                  <FormLabel>Name</FormLabel>
-                  <Input
-                    value={newPet.name}
-                    onChange={(e) =>
-                      setNewPet({ ...newPet, name: e.target.value })
-                    }
                   />
-                </FormControl>
-                <FormControl mb={4}>
-                  <FormLabel>Age</FormLabel>
-                  <Input
-                    type="number"
-                    value={newPet.age}
-                    onChange={(e) =>
-                      setNewPet({ ...newPet, age: e.target.value })
-                    }
-                  />
-                </FormControl>
-                <FormControl mb={4}>
-                  <FormLabel>Type</FormLabel>
-                  <Select
-                    value={newPet.type}
-                    onChange={(e) =>
-                      setNewPet({ ...newPet, type: e.target.value })
-                    }
-                  >
-                    <option value="Dog">Dog</option>
-                    <option value="Cat">Cat</option>
-                  </Select>
-                </FormControl>
-                <FormControl mb={4}>
-                  <FormLabel>Breed</FormLabel>
-                  <Select
-                    value={newPet.breed}
-                    onChange={(e) =>
-                      setNewPet({ ...newPet, breed: e.target.value })
-                    }
-                  >
-                    {newPet.type === "Dog" &&
-                      dogBreeds.map((breed) => (
-                        <option key={breed.id} value={breed.name}>
-                          {breed.name}
-                        </option>
-                      ))}
-                    {newPet.type === "Cat" &&
-                      catBreeds.map((breed) => (
-                        <option key={breed.id} value={breed.name}>
-                          {breed.name}
-                        </option>
-                      ))}
-                  </Select>
-                </FormControl>
-                <FormControl mb={4}>
-                  <FormLabel>Gender</FormLabel>
-                  <Select
-                    value={newPet.sex}
-                    onChange={(e) =>
-                      setNewPet({ ...newPet, sex: e.target.value })
-                    }
-                  >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </Select>
-                </FormControl>
-                <FormControl mb={4}>
-                  <FormLabel>Description</FormLabel>
-                  <Input
-                    value={newPet.description}
-                    onChange={(e) =>
-                      setNewPet({ ...newPet, description: e.target.value })
-                    }
-                  />
-                </FormControl>
-                <FormControl mb={4}>
-                  <FormLabel>Traits</FormLabel>
-                  <Select
-                    placeholder="Select traits"
-                    onChange={(e) => {
-                      const selectedTrait = e.target.value;
-                      if (!newPet.traits.includes(selectedTrait)) {
-                        setNewPet({
-                          ...newPet,
-                          traits: [...newPet.traits, selectedTrait],
-                        });
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+            <Modal
+              isOpen={openAddPetDialog}
+              onClose={() => setOpenAddPetDialog(false)}
+              size="md"
+            >
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Add New Pet</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <FormControl mb={4}>
+                    <FormLabel>Name</FormLabel>
+                    <Input
+                      value={newPet.name}
+                      onChange={(e) =>
+                        setNewPet({ ...newPet, name: e.target.value })
                       }
-                    }}
-                  >
-                    <option value="playful">Playful</option>
-                    <option value="loving">Loving</option>
-                    <option value="gourmand">Gourmand</option>
-                    <option value="energetic">Energetic</option>
-                    <option value="curious">Curious</option>
-                  </Select>
-                  <Box mt={2}>
-                    {newPet.traits.map((trait, index) => (
-                      <Tag
-                        key={index}
-                        size="md"
-                        borderRadius="full"
-                        variant="solid"
-                        colorScheme={
-                          ["teal", "blue", "green", "red", "purple", "orange"][
-                            Math.floor(Math.random() * 6)
-                          ]
+                    />
+                  </FormControl>
+                  <FormControl mb={4}>
+                    <FormLabel>Age</FormLabel>
+                    <Input
+                      type="number"
+                      value={newPet.age}
+                      onChange={(e) =>
+                        setNewPet({ ...newPet, age: e.target.value })
+                      }
+                    />
+                  </FormControl>
+                  <FormControl mb={4}>
+                    <FormLabel>Type</FormLabel>
+                    <Select
+                      value={newPet.type}
+                      onChange={(e) =>
+                        setNewPet({ ...newPet, type: e.target.value })
+                      }
+                    >
+                      <option value="Dog">Dog</option>
+                      <option value="Cat">Cat</option>
+                    </Select>
+                  </FormControl>
+                  <FormControl mb={4}>
+                    <FormLabel>Breed</FormLabel>
+                    <Select
+                      value={newPet.breed}
+                      onChange={(e) =>
+                        setNewPet({ ...newPet, breed: e.target.value })
+                      }
+                    >
+                      {newPet.type === "Dog" &&
+                        dogBreeds.map((breed) => (
+                          <option key={breed.id} value={breed.name}>
+                            {breed.name}
+                          </option>
+                        ))}
+                      {newPet.type === "Cat" &&
+                        catBreeds.map((breed) => (
+                          <option key={breed.id} value={breed.name}>
+                            {breed.name}
+                          </option>
+                        ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl mb={4}>
+                    <FormLabel>Gender</FormLabel>
+                    <Select
+                      value={newPet.sex}
+                      onChange={(e) =>
+                        setNewPet({ ...newPet, sex: e.target.value })
+                      }
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </Select>
+                  </FormControl>
+                  <FormControl mb={4}>
+                    <FormLabel>Description</FormLabel>
+                    <Input
+                      value={newPet.description}
+                      onChange={(e) =>
+                        setNewPet({ ...newPet, description: e.target.value })
+                      }
+                    />
+                  </FormControl>
+                  <FormControl mb={4}>
+                    <FormLabel>Traits</FormLabel>
+                    <Select
+                      placeholder="Select traits"
+                      onChange={(e) => {
+                        const selectedTrait = e.target.value;
+                        if (!newPet.traits.includes(selectedTrait)) {
+                          setNewPet({
+                            ...newPet,
+                            traits: [...newPet.traits, selectedTrait],
+                          });
                         }
-                        mr={2}
-                        mt={2}
-                      >
-                        <TagLabel>{trait}</TagLabel>
-                        <TagCloseButton
-                          onClick={() => {
-                            setNewPet({
-                              ...newPet,
-                              traits: newPet.traits.filter((t) => t !== trait),
-                            });
-                          }}
-                        />
-                      </Tag>
-                    ))}
-                  </Box>
-                </FormControl>
-              </ModalBody>
-              <ModalFooter>
-                <Button colorScheme="teal" onClick={handleAddPet}>
-                  Add Pet
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-          <Modal
-            isOpen={openDeleteModal}
-            onClose={() => setOpenDeleteModal(false)}
+                      }}
+                    >
+                      <option value="playful">Playful</option>
+                      <option value="loving">Loving</option>
+                      <option value="gourmand">Gourmand</option>
+                      <option value="energetic">Energetic</option>
+                      <option value="curious">Curious</option>
+                    </Select>
+                    <Box mt={2}>
+                      {newPet.traits.map((trait, index) => (
+                        <Tag
+                          key={index}
+                          size="md"
+                          borderRadius="full"
+                          variant="solid"
+                          colorScheme={
+                            [
+                              "teal",
+                              "blue",
+                              "green",
+                              "red",
+                              "purple",
+                              "orange",
+                            ][Math.floor(Math.random() * 6)]
+                          }
+                          mr={2}
+                          mt={2}
+                        >
+                          <TagLabel>{trait}</TagLabel>
+                          <TagCloseButton
+                            onClick={() => {
+                              setNewPet({
+                                ...newPet,
+                                traits: newPet.traits.filter(
+                                  (t) => t !== trait,
+                                ),
+                              });
+                            }}
+                          />
+                        </Tag>
+                      ))}
+                    </Box>
+                  </FormControl>
+                </ModalBody>
+                <ModalFooter>
+                  <Button colorScheme="teal" onClick={handleAddPet}>
+                    Add Pet
+                  </Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+            <Modal
+              isOpen={openDeleteModal}
+              onClose={() => setOpenDeleteModal(false)}
+            >
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Confirm Delete</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <Text>Are you sure you want to delete this pet?</Text>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setOpenDeleteModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    colorScheme="red"
+                    onClick={handleConfirmDelete}
+                    ml={3}
+                  >
+                    Delete
+                  </Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+          </Box>
+
+          <Box
+            borderWidth="1px"
+            borderRadius="lg"
+            p={6}
+            boxShadow="md"
+            bg={bgColor}
           >
-            <ModalOverlay />
-            <ModalContent>
-              <ModalHeader>Confirm Delete</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <Text>Are you sure you want to delete this pet?</Text>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  variant="ghost"
-                  onClick={() => setOpenDeleteModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button colorScheme="red" onClick={handleConfirmDelete} ml={3}>
-                  Delete
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-        </Box>
-      <Box borderWidth="1px" borderRadius="md" p={4} boxShadow="md">
-  <Box mb={4}>
-    <Heading as="h2" size="xl">
-      My Announcements
-    </Heading>
-  </Box>
-  <Box
-    overflowY="auto"
-    maxH="70vh"
-    p={4}
-    borderRadius="md"
-    boxShadow="md"
-    display="flex"
-    flexWrap="wrap"
-    gap={4}
-    justifyContent="center"
-  >
-    {Array.isArray(announcements) && announcements.length > 0 ? (
-      announcements.map((announcement) => (
-        <Box
-          key={announcement.announcementId}
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius="md"
-          p={4}
-          boxShadow="sm"
-          width={{ base: "100%", md: "80%" }} // Make the announcement boxes wider and responsive
-          bg="white" // Modern look with white background
-          _hover={{ boxShadow: "lg", transform: "scale(1.02)" }} // Add hover effect
-          transition="all 0.2s"
-        >
-          <Announcement
-            title={announcement.announcementTitle}
-            content={announcement.announcementDescription}
-            date={new Date(announcement.announcementDate).toLocaleString(
-              "en-UK"
-            )}
-            username={announcement.userName}
-            currentUserId={user.id}
-            announcementUserId={announcement.createdBy}
-            announcementId={announcement.announcementId}
-            imageUrl={announcement.imageUrl}
-            userImage={announcement.userImage}
-            animalType={announcement.animalType}
-            animalBreed={announcement.animalBreed}
-            animalGender={announcement.animalGender}
-            location={announcement.location}
-            onEdit={handleEditAnnouncement}
-            onDelete={() =>
-              handleDeleteAnnouncement(announcement.announcementId)
-            }
-          />
-        </Box>
-      ))
-    ) : (
-      <Box textAlign="center" mt={8} color="gray.500">
-        No announcements found.
-      </Box>
-    )}
-  </Box>
-</Box>
+            <Heading as="h2" size="xl" mb={6}>
+              My Announcements
+            </Heading>
+            <Box w="full" py={4}>
+              <ChakraCarousel gap={32}>
+                {Array.isArray(announcements) && announcements.length > 0
+                  ? announcements.map((announcement) => (
+                      <Box
+                        key={announcement.announcementId}
+                        maxW="sm"
+                        borderWidth="1px"
+                        borderRadius="lg"
+                        overflow="hidden"
+                        boxShadow="md"
+                        _hover={{
+                          boxShadow: "lg",
+                          transform: "translateY(-4px)",
+                        }}
+                        transition="all 0.3s"
+                      >
+                        <Announcement
+                          title={announcement.announcementTitle}
+                          content={announcement.announcementDescription}
+                          date={new Date(
+                            announcement.announcementDate,
+                          ).toLocaleString("en-UK")}
+                          username={announcement.userName}
+                          currentUserId={user.id}
+                          announcementUserId={announcement.createdBy}
+                          announcementId={announcement.announcementId}
+                          imageUrl={announcement.imageUrl}
+                          userImage={announcement.userImage}
+                          animalType={announcement.animalType}
+                          animalBreed={announcement.animalBreed}
+                          animalGender={announcement.animalGender}
+                          location={announcement.location}
+                          onEdit={handleEditAnnouncement}
+                          onDelete={() =>
+                            handleDeleteAnnouncement(
+                              announcement.announcementId,
+                            )
+                          }
+                        />
+                      </Box>
+                    ))
+                  : [
+                      <Box
+                        key="no-announcements"
+                        textAlign="center"
+                        color="gray.500"
+                      >
+                        No announcements found.
+                      </Box>,
+                    ]}
+              </ChakraCarousel>
+            </Box>
+          </Box>
+        </VStack>
       </Container>
     </>
   );

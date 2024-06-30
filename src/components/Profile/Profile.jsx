@@ -89,7 +89,7 @@ const Profile = () => {
         flexDirection={{ base: "column", md: "row" }}
         alignItems="center"
         justifyContent="center"
-        minWidth="80vw"
+        minWidth="100vw"
         p={{ base: "1rem", md: "2rem" }}
         mt={{ base: "0.5rem", md: "1rem" }}
         borderRadius="12px"
