@@ -60,17 +60,17 @@
 }
 
 @media screen and (max-width: 768px) {
-    .pet-details-container {
-        display: flex;
-        flex-direction: column;
-        padding: 1.25rem;
-        min-width: 90vw;
-        min-height: 100vh;
-        box-shadow: 4px 10px 5px rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        border: 1px solid #ddd; /* Slightly lighter border */
-        position: relative;
-    }
+    /*.pet-details-container {*/
+    /*    display: flex;*/
+    /*    flex-direction: column;*/
+    /*    padding: 1.25rem;*/
+    /*    min-width: 90vw;*/
+    /*    min-height: 100vh;*/
+    /*    box-shadow: 4px 10px 5px rgba(0, 0, 0, 0.2);*/
+    /*    border-radius: 8px;*/
+    /*    border: 1px solid #ddd; !* Slightly lighter border *!*/
+    /*    position: relative;*/
+    /*}*/
 
     .pet-details-header {
         flex-direction: column;

@@ -94,8 +94,18 @@ function Home() {
   };
 
   return (
-    <Container maxW="container.xl" py={10}>
-      <VStack spacing={20} align="center">
+    <Container
+      maxW={{
+        base: "90vw",
+        sm: "container.xs",
+        md: "container.md",
+        lg: "container.lg",
+        xl: "container.xl",
+      }}
+      px={{ base: 4, md: 6 }}
+      py={{ base: 5, md: 10 }}
+    >
+      <VStack spacing={{ base: 10, md: 20 }} align="center">
         {/* Hero Section */}
         <Box
           textAlign="center"
@@ -103,27 +113,31 @@ function Home() {
           backgroundImage="url('https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')"
           backgroundSize="cover"
           backgroundPosition="center"
-          py={20}
+          py={{ base: 10, md: 20 }}
           borderRadius="lg"
+          overflow="hidden"
         >
           <Box
             bg="rgba(255, 255, 255, 0.8)"
-            p={8}
+            p={{ base: 4, md: 8 }}
             borderRadius="md"
             maxW="container.md"
             mx="auto"
           >
-            <Heading as="h1" size="2xl" mb={4}>
+            <Heading
+              as="h1"
+              size={{ base: "xl", md: "2xl" }}
+              mb={{ base: 2, md: 4 }}
+            >
               Welcome to Adopt a Pet
             </Heading>
-            <Text fontSize="xl" mb={6}>
+            <Text fontSize={{ base: "md", md: "xl" }} mb={{ base: 4, md: 6 }}>
               Your Perfect Pet Companion Awaits - Find Your Furry Soulmate
               Today!
             </Text>
             <Button
               colorScheme="blue"
-              size="lg"
-              mr={4}
+              size={{ base: "md", md: "lg" }}
               onClick={() => navigate("/register")}
             >
               Sign Up Now
@@ -132,11 +146,19 @@ function Home() {
         </Box>
 
         {/* About Section */}
-        <Box textAlign="center" w="full">
-          <Heading as="h2" size="xl" mb={10}>
+        <Box textAlign="center" w="full" overflow="hidden">
+          <Heading
+            as="h2"
+            size={{ base: "lg", md: "xl" }}
+            mb={{ base: 6, md: 10 }}
+          >
             Our Unique Features
           </Heading>
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10}>
+          <SimpleGrid
+            columns={{ base: 1, md: 2, lg: 3 }}
+            spacing={{ base: 6, md: 10 }}
+            px={{ base: 2, md: 0 }}
+          >
             <Feature
               icon={FaSearch}
               title="Smart Pet Matching"
@@ -166,15 +188,27 @@ function Home() {
         </Box>
 
         {/* Why Choose Us Section */}
-        <Box textAlign="center" w="full" bg="gray.50" py={10} borderRadius="lg">
-          <Heading as="h2" size="xl" mb={8}>
+        <Box
+          textAlign="center"
+          w="full"
+          bg="gray.50"
+          py={{ base: 6, md: 10 }}
+          borderRadius="lg"
+          overflow="hidden"
+        >
+          <Heading
+            as="h2"
+            size={{ base: "lg", md: "xl" }}
+            mb={{ base: 4, md: 8 }}
+          >
             Why Choose Adopt a Pet?
           </Heading>
           <SimpleGrid
             columns={{ base: 1, md: 2 }}
-            spacing={10}
+            spacing={{ base: 6, md: 10 }}
             maxW="container.lg"
             mx="auto"
+            px={{ base: 2, md: 0 }}
           >
             <ChooseUsReason
               title="Save a Life"
@@ -190,8 +224,13 @@ function Home() {
         </Box>
 
         {/* Recent Adoptions */}
-        <Box w="full" py={8}>
-          <Heading as="h2" size="xl" mb={8} textAlign="center">
+        <Box w="full" py={{ base: 4, md: 8 }} overflow="hidden">
+          <Heading
+            as="h2"
+            size={{ base: "lg", md: "xl" }}
+            mb={{ base: 4, md: 8 }}
+            textAlign="center"
+          >
             Recent Adoptions
           </Heading>
           <ChakraCarousel gap={32}>
@@ -203,6 +242,7 @@ function Home() {
                 transition="opacity 0.2s"
                 maxW={{ base: "full", md: "sm" }}
                 mx="auto"
+                px={{ base: 2, md: 0 }}
               >
                 <Announcement
                   title={announcement.announcementTitle}
@@ -229,18 +269,23 @@ function Home() {
         </Box>
 
         {/* Testimonials */}
-        <Box textAlign="center" w="full">
-          <Heading as="h2" size="xl" mb={8}>
+        <Box textAlign="center" w="full" overflow="hidden">
+          <Heading
+            as="h2"
+            size={{ base: "lg", md: "xl" }}
+            mb={{ base: 4, md: 8 }}
+          >
             Hear from Our Happy Adopters
           </Heading>
           <SimpleGrid
             columns={{ base: 1, md: 2 }}
-            spacing={10}
+            spacing={{ base: 6, md: 10 }}
             maxW="container.lg"
             mx="auto"
+            px={{ base: 2, md: 0 }}
           >
             <Testimonial
-              quote="Thanks to PawsomeAdopt, I found my perfect feline companion. The process was smooth, and the support has been amazing!"
+              quote="Thanks to Adopt A Pet, I found my perfect feline companion. The process was smooth, and the support has been amazing!"
               author="Sarah K."
               image="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
             />
@@ -253,23 +298,39 @@ function Home() {
         </Box>
 
         {/* Call to Action */}
-        <Box textAlign="center" w="full" bg="blue.50" py={10} borderRadius="lg">
-          <Heading as="h2" size="xl" mb={4}>
-            Join the PawsomeAdopt Family Today!
+        <Box
+          textAlign="center"
+          w="full"
+          bg="blue.50"
+          py={{ base: 6, md: 10 }}
+          borderRadius="lg"
+          overflow="hidden"
+        >
+          <Heading
+            as="h2"
+            size={{ base: "lg", md: "xl" }}
+            mb={{ base: 2, md: 4 }}
+          >
+            Join the Adopt A Pet Family Today!
           </Heading>
-          <Text fontSize="lg" mb={6}>
+          <Text fontSize={{ base: "md", md: "lg" }} mb={{ base: 4, md: 6 }}>
             Every pet deserves a loving home, and every home deserves the joy of
             a pet. Start your adoption journey with us!
           </Text>
           <Button
             colorScheme="blue"
-            size="lg"
-            mr={4}
+            size={{ base: "md", md: "lg" }}
+            mr={{ base: 2, md: 4 }}
+            mb={{ base: 2, md: 0 }}
             onClick={() => navigate("/register")}
           >
             Create your account now
           </Button>
-          <Button colorScheme="green" size="lg" onClick={handleLearnMore}>
+          <Button
+            colorScheme="green"
+            size={{ base: "md", md: "lg" }}
+            onClick={handleLearnMore}
+          >
             Learn About Our Similarity Algorithm
           </Button>
         </Box>
@@ -285,11 +346,13 @@ function Home() {
 function Feature({ icon, title, description }) {
   return (
     <VStack>
-      <Icon as={icon} w={10} h={10} color="blue.500" />
-      <Heading as="h3" size="md" mb={2}>
+      <Icon as={icon} w={8} h={8} color="blue.500" />
+      <Heading as="h3" size={{ base: "sm", md: "md" }} mb={2}>
         {title}
       </Heading>
-      <Text textAlign="center">{description}</Text>
+      <Text textAlign="center" fontSize={{ base: "sm", md: "md" }}>
+        {description}
+      </Text>
     </VStack>
   );
 }
@@ -301,34 +364,36 @@ function ChooseUsReason({ title, description, image }) {
         src={image}
         alt={title}
         borderRadius="full"
-        boxSize="150px"
+        boxSize={{ base: "100px", md: "150px" }}
         objectFit="cover"
         mb={4}
       />
-      <Heading as="h3" size="md" mb={2}>
+      <Heading as="h3" size={{ base: "sm", md: "md" }} mb={2}>
         {title}
       </Heading>
-      <Text>{description}</Text>
+      <Text fontSize={{ base: "sm", md: "md" }}>{description}</Text>
     </VStack>
   );
 }
 
 function Testimonial({ quote, author, image }) {
   return (
-    <Box bg="white" p={6} borderRadius="md" boxShadow="md">
+    <Box bg="white" p={{ base: 4, md: 6 }} borderRadius="md" boxShadow="md">
       <Image
         src={image}
         alt={author}
         borderRadius="full"
-        boxSize="100px"
+        boxSize={{ base: "80px", md: "100px" }}
         objectFit="cover"
         mb={4}
         mx="auto"
       />
-      <Text fontStyle="italic" mb={4}>
+      <Text fontStyle="italic" mb={4} fontSize={{ base: "sm", md: "md" }}>
         "{quote}"
       </Text>
-      <Text fontWeight="bold">- {author}</Text>
+      <Text fontWeight="bold" fontSize={{ base: "sm", md: "md" }}>
+        - {author}
+      </Text>
     </Box>
   );
 }

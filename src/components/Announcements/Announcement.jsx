@@ -1,11 +1,22 @@
 import { useEffect, useState } from "react";
 import {
+  FaCat,
+  FaCheckCircle,
+  FaClock,
+  FaDog,
   FaEdit,
   FaEllipsisV,
+  FaHeart,
+  FaMapMarkerAlt,
+  FaMars,
+  FaPaw,
   FaSave,
+  FaSearch,
   FaTimes,
   FaTrash,
   FaUpload,
+  FaVenus,
+  FaVenusMars,
 } from "react-icons/fa";
 import {
   Avatar,
@@ -21,25 +32,34 @@ import {
   ModalOverlay,
   Text,
   Image,
-  useColorModeValue,
   Container,
-  Textarea,
   Tag,
   FormControl,
   FormLabel,
   Select,
-  Heading,
-  Progress,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
+  VStack,
+  Flex,
+  Spacer,
+  Divider,
+  HStack,
+  TagLeftIcon,
+  TagLabel,
+  WrapItem,
+  Wrap,
 } from "@chakra-ui/react";
 import GooglePlacesAutocomplete, {
   geocodeByPlaceId,
 } from "react-google-places-autocomplete";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { format } from "date-fns";
+
+const MotionBox = motion(Box);
 
 const Announcement = ({
   title,
@@ -130,16 +150,42 @@ const Announcement = ({
     formData.append("AnimalType", editedAnimalType);
     formData.append("AnimalBreed", editedAnimalBreed);
     formData.append("AnimalGender", editedAnimalGender);
-    formData.append("Location", editedLocation);
+
+    const locationToSave = editedLocation || location;
+    formData.append("Location", locationToSave);
 
     if (editedImage) {
       formData.append("ImageFile", editedImage);
     }
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-    onEdit(announcementId, formData);
+
+    // Update state using callback functions
+    setEditedTitle((prevTitle) => {
+      formData.set("AnnouncementTitle", prevTitle);
+      return prevTitle;
+    });
+    setEditedContent((prevContent) => {
+      formData.set("AnnouncementDescription", prevContent);
+      return prevContent;
+    });
+    setEditedAnimalType((prevType) => {
+      formData.set("AnimalType", prevType);
+      return prevType;
+    });
+    setEditedAnimalBreed((prevBreed) => {
+      formData.set("AnimalBreed", prevBreed);
+      return prevBreed;
+    });
+    setEditedAnimalGender((prevGender) => {
+      formData.set("AnimalGender", prevGender);
+      return prevGender;
+    });
+    setEditedLocation((prevLocation) => {
+      formData.set("Location", prevLocation || locationToSave);
+      return prevLocation || locationToSave;
+    });
+
     setIsEditModalOpen(false);
+    onEdit(announcementId, formData);
   };
 
   const handleCancel = () => {
@@ -175,159 +221,229 @@ const Announcement = ({
       });
   };
 
+  let formattedDate;
+  try {
+    // Parse the date string to a Date object
+    const parsedDate = new Date(date);
+    // Check if the parsed date is valid
+    if (isNaN(parsedDate)) {
+      throw new Error("Invalid date");
+    }
+    // Format the valid date
+    formattedDate = format(parsedDate, "PPP");
+  } catch (error) {
+    console.error(error.message);
+    formattedDate = "Invalid date";
+  }
+
   const isOwner = currentUserId === announcementUserId;
 
+  const breedOptions =
+    editedAnimalType === "Dog"
+      ? dogBreeds
+      : editedAnimalType === "Cat"
+        ? catBreeds
+        : [];
+
   return (
-    <Container
-      display="flex"
-      flexDirection="column"
-      bg={useColorModeValue("white", "gray.700")}
-      boxShadow="md"
-      borderRadius="md"
-      overflow="hidden"
-      mb={4}
-      maxWidth="lg"
+    <MotionBox
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      h="100%"
     >
-      <Box
-        p={4}
+      <Container
+        maxW={{ base: "100%", sm: "540px", md: "720px" }}
+        w="100%"
+        boxShadow="lg"
+        borderRadius="xl"
+        overflow="hidden"
+        borderWidth="1px"
+        h="100%"
         display="flex"
         flexDirection="column"
-        justifyContent="space-between"
-        flex="1"
-        flexWrap="wrap"
       >
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          p={4}
-        >
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            width="100%"
-          >
-            <Box display="flex" alignItems="center">
-              <Avatar src={userImage} />
-              <Box ml="2">
-                <Text fontWeight="bold">{username}</Text>
-                <Text fontSize="sm" color="gray.500">
-                  {date}
+        <VStack spacing={3} align="stretch" h="100%">
+          <Flex p={4} alignItems="center">
+            <Avatar src={userImage} size="md" />
+            <Box ml={3}>
+              <Text fontWeight="bold" fontSize="lg">
+                {username}
+              </Text>
+              <Text fontSize="sm" color="gray.500">
+                <FaClock style={{ display: "inline", marginRight: "5px" }} />
+                {formattedDate}
+              </Text>
+              {location && (
+                <Box px={4} pt={2}>
+                  <Text fontSize="sm" color="gray.500">
+                    <FaMapMarkerAlt
+                      style={{ display: "inline", marginRight: "5px" }}
+                    />
+                    {location}
+                  </Text>
+                </Box>
+              )}
+            </Box>
+            <Spacer />
+            {isOwner && (
+              <Menu>
+                <MenuButton
+                  as={IconButton}
+                  icon={<FaEllipsisV />}
+                  variant="ghost"
+                  aria-label="Options"
+                  size="sm"
+                />
+                <MenuList>
+                  <MenuItem icon={<FaEdit />} onClick={handleEditModalOpen}>
+                    Edit
+                  </MenuItem>
+                  <MenuItem
+                    icon={<FaTrash />}
+                    onClick={handleDeleteModalOpen}
+                    color="red.500"
+                  >
+                    Delete
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            )}
+          </Flex>
+
+          <Divider />
+
+          <Box p={4}>
+            <Wrap spacing={2} justify="center">
+              <WrapItem>
+                <Tag
+                  size={{ base: "md", md: "lg" }}
+                  variant="solid"
+                  colorScheme={
+                    editedTitle === "Lost"
+                      ? "red"
+                      : editedTitle === "Found"
+                        ? "green"
+                        : "blue"
+                  }
+                >
+                  <TagLeftIcon
+                    as={
+                      editedTitle === "Lost"
+                        ? FaSearch
+                        : editedTitle === "Found"
+                          ? FaCheckCircle
+                          : FaHeart
+                    }
+                  />
+                  <TagLabel>{editedTitle}</TagLabel>
+                </Tag>
+              </WrapItem>
+              {animalType && (
+                <WrapItem>
+                  <Tag
+                    size={{ base: "md", md: "lg" }}
+                    variant="subtle"
+                    colorScheme="purple"
+                  >
+                    <TagLeftIcon as={FaPaw} />
+                    <TagLabel>{animalType}</TagLabel>
+                  </Tag>
+                </WrapItem>
+              )}
+              {animalBreed && (
+                <WrapItem>
+                  <Tag
+                    size={{ base: "md", md: "lg" }}
+                    variant="subtle"
+                    colorScheme="orange"
+                  >
+                    <TagLeftIcon
+                      as={
+                        animalType === "Dog"
+                          ? FaDog
+                          : animalType === "Cat"
+                            ? FaCat
+                            : FaPaw
+                      }
+                    />
+                    <TagLabel>{animalBreed}</TagLabel>
+                  </Tag>
+                </WrapItem>
+              )}
+              {animalGender && (
+                <WrapItem>
+                  <Tag
+                    size={{ base: "md", md: "lg" }}
+                    variant="subtle"
+                    colorScheme={animalGender === "Male" ? "blue" : "pink"}
+                  >
+                    <TagLeftIcon
+                      as={animalGender === "Male" ? FaMars : FaVenus}
+                    />
+                    <TagLabel>{animalGender}</TagLabel>
+                  </Tag>
+                </WrapItem>
+              )}
+            </Wrap>
+          </Box>
+
+          {imageUrl && (
+            <Box
+              position="relative"
+              overflow="hidden"
+              borderRadius="md"
+              onClick={handleImageModalOpen}
+              cursor="pointer"
+            >
+              <Image
+                src={imageUrl}
+                alt="Announcement"
+                objectFit="cover"
+                w="100%"
+                h="300px"
+              />
+              <Box
+                position="absolute"
+                top="0"
+                left="0"
+                right="0"
+                bottom="0"
+                bg="blackAlpha.300"
+                opacity="0"
+                transition="opacity 0.2s"
+                _hover={{ opacity: 1 }}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Text color="white" fontWeight="bold">
+                  Click to enlarge
                 </Text>
               </Box>
             </Box>
-            {isOwner && (
-              <Box display="flex" position="relative" ml="auto">
-                <Menu>
-                  <MenuButton
-                    as={IconButton}
-                    icon={<FaEllipsisV />}
-                    aria-label="Options"
-                    size="sm"
-                  />
-                  <MenuList>
-                    <MenuItem icon={<FaEdit />} onClick={handleEditModalOpen}>
-                      Edit
-                    </MenuItem>
-                    <MenuItem
-                      icon={<FaTrash />}
-                      onClick={handleDeleteModalOpen}
-                      color="red.500"
-                      _hover={{ bg: "red.100" }}
-                    >
-                      Delete
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-              </Box>
-            )}
-          </Box>
-        </Box>
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          width="100%"
-          mt="4"
-        >
-          <Tag
-            size="lg"
-            variant="solid"
-            colorScheme={
-              editedTitle === "Lost"
-                ? "red"
-                : editedTitle === "Found"
-                  ? "teal"
-                  : "orange"
-            }
-            flexShrink={0}
-          >
-            {editedTitle}
-          </Tag>
-        </Box>
-      </Box>
-      {imageUrl && (
-        <Box
-          mx="auto"
-          maxW="xl"
-          minW="xs"
-          borderRadius="lg"
-          overflow="hidden"
-          boxShadow="md"
-          cursor="pointer"
-          onClick={handleImageModalOpen}
-          flex="1"
-          m="0.5rem"
-        >
-          <Image
-            src={imageUrl}
-            alt="Announcement"
-            maxH="200px"
-            objectFit="cover"
-            w="100%"
-            onError={(e) => console.error("Image failed to load:", e)}
-          />
-        </Box>
-      )}
-      <Box p={4} flex="1" m="0.5rem">
-        {animalType && (
-          <Text mb={2}>
-            <strong>Species:</strong> {animalType}
-          </Text>
-        )}
-        {animalBreed && (
-          <Text mb={2}>
-            <strong>Breed:</strong> {animalBreed}
-          </Text>
-        )}
-        {animalGender && (
-          <Text mb={2}>
-            <strong>Gender:</strong> {animalGender}
-          </Text>
-        )}
-        {location && (
-          <Text mb={2}>
-            <strong>Location:</strong> {location}
-          </Text>
-        )}
-        {/*<Text mt={4}>
-          {editedContent.split(", ").map((line, index) => (
-            <Box key={index}>{line}</Box>
-          ))}
-        </Text>*/}
-        {!isHomePage && ( // Only render the button if it's not the home page
-          <Button
-            mt={4}
-            colorScheme="blue"
-            onClick={() => navigate(`/announcement/${announcementId}`)}
-          >
-            View Details
-          </Button>
-        )}
-      </Box>
-      <Modal isOpen={isImageModalOpen} onClose={handleImageModalClose}>
+          )}
+
+          {!isHomePage && (
+            <Box p={4}>
+              <Button
+                colorScheme="blue"
+                onClick={() => navigate(`/announcement/${announcementId}`)}
+                width="full"
+              >
+                View Details
+              </Button>
+            </Box>
+          )}
+        </VStack>
+      </Container>
+
+      {/* Image Modal */}
+      <Modal
+        isOpen={isImageModalOpen}
+        onClose={handleImageModalClose}
+        size="xl"
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Image Preview</ModalHeader>
@@ -336,7 +452,8 @@ const Announcement = ({
               src={imageUrl}
               alt="Announcement"
               w="100%"
-              onError={(e) => console.error("Image failed to load:", e)}
+              maxH="70vh"
+              objectFit="contain"
             />
           </ModalBody>
           <ModalFooter>
@@ -344,6 +461,8 @@ const Announcement = ({
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Delete Confirmation Modal */}
       <Modal isOpen={isDeleteModalOpen} onClose={handleDeleteModalClose}>
         <ModalOverlay />
         <ModalContent>
@@ -367,25 +486,17 @@ const Announcement = ({
           </ModalFooter>
         </ModalContent>
       </Modal>
-      <Modal isOpen={isEditModalOpen} onClose={handleEditModalClose}>
+
+      {/* Edit Modal */}
+      <Modal isOpen={isEditModalOpen} onClose={handleEditModalClose} size="xl">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Edit Announcement</ModalHeader>
           <ModalBody>
-            <Box
-              as="form"
-              mt={2}
-              overflow="auto"
-              maxH="70vh"
-              width="100%"
-              maxWidth={600}
-              display="flex"
-              flexDirection="column"
-            >
-              <FormControl mb={4} isRequired>
+            <VStack spacing={4} align="stretch">
+              <FormControl isRequired>
                 <FormLabel>Announcement Type</FormLabel>
                 <Select
-                  placeholder="Announcement Type"
                   value={editedTitle}
                   onChange={(e) => setEditedTitle(e.target.value)}
                 >
@@ -394,10 +505,9 @@ const Announcement = ({
                   <option value="For Adoption">For Adoption</option>
                 </Select>
               </FormControl>
-              <FormControl mb={4} isRequired>
+              <FormControl isRequired>
                 <FormLabel>Type</FormLabel>
                 <Select
-                  placeholder="Type"
                   value={editedAnimalType}
                   onChange={(e) => setEditedAnimalType(e.target.value)}
                 >
@@ -406,31 +516,22 @@ const Announcement = ({
                   <option value="Other">Other</option>
                 </Select>
               </FormControl>
-              <FormControl mb={4} isRequired>
+              <FormControl isRequired>
                 <FormLabel>Breed</FormLabel>
                 <Select
-                  placeholder="Breed"
                   value={editedAnimalBreed}
                   onChange={(e) => setEditedAnimalBreed(e.target.value)}
                 >
-                  {animalType === "Dog" &&
-                    dogBreeds.map((breed) => (
-                      <option key={breed.id} value={breed.name}>
-                        {breed.name}
-                      </option>
-                    ))}
-                  {animalType === "Cat" &&
-                    catBreeds.map((breed) => (
-                      <option key={breed.id} value={breed.name}>
-                        {breed.name}
-                      </option>
-                    ))}
+                  {breedOptions.map((breed) => (
+                    <option key={breed.id} value={breed.name}>
+                      {breed.name}
+                    </option>
+                  ))}
                 </Select>
               </FormControl>
-              <FormControl mb={4} isRequired>
+              <FormControl isRequired>
                 <FormLabel>Gender</FormLabel>
                 <Select
-                  placeholder="Gender"
                   value={editedAnimalGender}
                   onChange={(e) => setEditedAnimalGender(e.target.value)}
                 >
@@ -438,59 +539,41 @@ const Announcement = ({
                   <option value="Female">Female</option>
                 </Select>
               </FormControl>
-              <FormControl mb={4} isRequired>
+              <FormControl isRequired>
                 <FormLabel>Location</FormLabel>
                 <GooglePlacesAutocomplete
                   apiKey={import.meta.env.VITE_GOOGLE_API_KEY}
                   selectProps={{
-                    editedLocation,
+                    value: editedLocation,
                     onChange: handleLocationChange,
-                  }}
-                  placeholder="Search for a location"
-                  fetchDetails={true}
-                  styles={{
-                    container: (provided) => ({
-                      ...provided.container,
-                      border: "1px solid #ccc",
-                      borderRadius: "5px",
-                      padding: "10px",
-                      boxShadow: "0px 0px 10px 0px rgba(0, 0, 0, 0.1)",
-                    }),
-                    input: (provided) => ({
-                      ...provided.input,
-                      padding: "10px",
-                      fontSize: "16px",
-                      borderRadius: "5px",
-                      border: "1px solid #ccc",
-                    }),
-                    option: (provided, state) => ({
-                      ...provided.option,
-                      color: "black",
-                      fontSize: "16px",
-                      padding: "10px",
-                      borderRadius: "5px",
-                      cursor: "pointer",
-                    }),
+                    styles: {
+                      control: (provided) => ({
+                        ...provided,
+                        "&:hover": {
+                          borderColor: "blue.500",
+                        },
+                      }),
+                    },
                   }}
                 />
               </FormControl>
-              <FormControl mb={4} isRequired>
+              <FormControl isRequired>
                 <FormLabel>Age</FormLabel>
                 <Input
-                  placeholder="Age"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
+                  placeholder="e.g., 2 years"
                 />
               </FormControl>
-              <FormControl mb={4} isRequired>
+              <FormControl isRequired>
                 <FormLabel>Color</FormLabel>
                 <Input
-                  placeholder="Color"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
+                  placeholder="e.g., Brown and White"
                 />
               </FormControl>
-              <FormControl mb={4} isRequired>
+              <FormControl isRequired>
                 <FormLabel>Date Lost/Found</FormLabel>
                 <Input
                   type="date"
@@ -498,23 +581,29 @@ const Announcement = ({
                   onChange={(e) => setDateLostFound(e.target.value)}
                 />
               </FormControl>
-              <Button as="label" variant="outline" leftIcon={<FaUpload />}>
+              <Button
+                as="label"
+                leftIcon={<FaUpload />}
+                colorScheme="blue"
+                variant="outline"
+                cursor="pointer"
+              >
                 Upload Image
                 <input type="file" hidden onChange={handleImageChange} />
               </Button>
-            </Box>
+            </VStack>
           </ModalBody>
           <ModalFooter>
             <Button mr={3} onClick={handleEditModalClose}>
               Cancel
             </Button>
             <Button colorScheme="blue" onClick={handleSave}>
-              Save
+              Save Changes
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
-    </Container>
+    </MotionBox>
   );
 };
 

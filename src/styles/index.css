@@ -23,6 +23,15 @@
     --dark-text-secondary: rgba(255, 255, 255, 0.7);
 }
 
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 100%;
+    min-height: 100vh;
+}
+
 a {
     font-weight: 500;
     color: #646cff;
@@ -71,6 +80,7 @@ button:focus-visible {
     :root {
         color: #213547;
         background-color: #ffffff;
+        min-height: 100vh;
     }
 
     a:hover {

@@ -3,7 +3,7 @@ import Home from "./components/Home.jsx";
 import Profile from "./components/Profile/Profile.jsx";
 import Announcements from "./components/Announcements/Announcements.jsx";
 import About from "./components/About.jsx";
-import { Box } from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import Login from "./components/Authentication/Login.jsx";
 import { useAuth } from "./components/context/AuthContext.jsx";
 import PropTypes from "prop-types";
@@ -31,48 +31,60 @@ const App = () => {
   };
 
   return (
-    <BrowserRouter>
-      <Header
-        onThemeToggle={toggleDarkMode} // Updated to use toggleDarkMode from context
-        isDarkMode={isDarkMode} // Updated to use isDarkMode from context
-        isLoggedIn={isLoggedIn}
-      />
-      <Box flex="1">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
+    <Box
+      as="div"
+      id="root"
+      minHeight="100vh"
+      width="100vw"
+      padding={{ base: "20px", sm: "40px", md: "80px" }}
+      display="flex"
+      flexDirection="column"
+      justifyContent="space-between"
+      overflow="hidden"
+    >
+      <BrowserRouter>
+        <Header
+          onThemeToggle={toggleDarkMode} // Updated to use toggleDarkMode from context
+          isDarkMode={isDarkMode} // Updated to use isDarkMode from context
+          isLoggedIn={isLoggedIn}
+        />
+        <Box flex="1">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
             <Route path="/announcement/:id" element={<AnnouncementDetails />} />
 
             <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/pet-details/:petId"
-            element={
-              <ProtectedRoute>
-                <PetDetailsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/announcements"
-            element={
-              <ProtectedRoute>
-                <Announcements />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Box>
-      <Footer />
-    </BrowserRouter>
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pet-details/:petId"
+              element={
+                <ProtectedRoute>
+                  <PetDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/announcements"
+              element={
+                <ProtectedRoute>
+                  <Announcements />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Box>
+        <Footer />
+      </BrowserRouter>
+    </Box>
   );
 };
 

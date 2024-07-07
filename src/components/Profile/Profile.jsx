@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Container } from "@chakra-ui/react";
+import { Box, Button, Container, Flex } from "@chakra-ui/react";
 import "../../styles/Profile.css";
 import "../../styles/App.css";
 import ProfileHeader from "./ProfileHeader.jsx";
@@ -83,58 +83,48 @@ const Profile = () => {
 
   return (
     <>
-      {isLoading && <LoadingSpinner />}{" "}
-      <Container
-        display="flex"
-        flexDirection={{ base: "column", md: "row" }}
-        alignItems="center"
-        justifyContent="center"
-        minWidth="100vw"
-        p={{ base: "1rem", md: "2rem" }}
+      {isLoading && <LoadingSpinner />}
+      <Box
+        width="100vw"
+        maxWidth="100%"
+        px={{ base: "1rem", sm: "2rem", md: "3rem", lg: "4rem" }}
         mt={{ base: "0.5rem", md: "1rem" }}
-        borderRadius="12px"
-        border="1px solid"
-        borderColor="gray.200"
-        boxShadow="sm"
-        position="relative"
       >
         <Box
-          display="flex"
-          flexDirection={{ base: "column", md: "row" }}
           width="100%"
+          borderRadius="12px"
+          border="1px solid"
+          borderColor="gray.200"
+          boxShadow="sm"
+          p={{ base: "1rem", sm: "1.5rem", md: "2rem" }}
         >
-          <Box
-            flex={{ base: "1", md: "1" }}
-            mr={{ base: "0", md: "2rem" }}
-            mb={{ base: "2rem", md: "0" }}
-          >
-            <ProfileHeader
-              user={user}
-              onUserUpdate={handleUserUpdate}
-              isEditMode={isEditMode}
-              setIsEditMode={setIsEditMode}
-              width="100%"
-            />
-          </Box>
-          <Box flex={{ base: "1", md: "2" }}>
-            <ProfileDetails
-              user={user}
-              onUserUpdate={handleUserUpdate}
-              isEditMode={isEditMode}
-              setIsEditMode={setIsEditMode}
-              width="100%"
-            />
-          </Box>
+          <Flex direction="column" gap="1rem">
+            <Box width="100%">
+              <ProfileHeader
+                user={user}
+                onUserUpdate={handleUserUpdate}
+                isEditMode={isEditMode}
+                setIsEditMode={setIsEditMode}
+              />
+            </Box>
+            <Box width="100%">
+              <ProfileDetails
+                user={user}
+                onUserUpdate={handleUserUpdate}
+                isEditMode={isEditMode}
+                setIsEditMode={setIsEditMode}
+              />
+            </Box>
+          </Flex>
+          {isEditMode && (
+            <Box mt={4} textAlign="right">
+              <Button colorScheme="teal" onClick={() => setIsEditMode(false)}>
+                Save Changes
+              </Button>
+            </Box>
+          )}
         </Box>
-
-        {isEditMode && (
-          <Box mt={4} textAlign={{ base: "center", md: "right" }} width="100%">
-            <Button colorScheme="teal" onClick={() => setIsEditMode(false)}>
-              Save Changes
-            </Button>
-          </Box>
-        )}
-      </Container>
+      </Box>
     </>
   );
 };

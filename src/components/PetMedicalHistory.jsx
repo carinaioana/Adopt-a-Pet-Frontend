@@ -33,6 +33,8 @@ import {
   Text,
   Select,
   Container,
+  Heading,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import { DeleteIcon, EditIcon, InfoIcon, AddIcon } from "@chakra-ui/icons";
 import LoadingSpinner from "./LoadingSpinner.jsx";
@@ -369,96 +371,77 @@ const PetDetailsPage = () => {
 
   return (
     <>
-      {isLoading && <LoadingSpinner />}{" "}
+      {isLoading && <LoadingSpinner />}
       <Container
         display="flex"
-        flexDirection={{ base: "column", md: "row" }}
-        centerContent
+        flexDirection={{ base: "column", lg: "row" }}
+        maxWidth={{ base: "100%", md: "760px", lg: "1200px" }}
         minWidth="80vw"
-        overflow="hidden"
+        mx="auto"
         p={{ base: "1rem", md: "2rem" }}
-        mt={{ base: "0.5rem", md: "1rem" }}
-        borderRadius="12px"
+        mt={{ base: "2rem", md: "3rem" }}
+        borderRadius="lg"
         border="1px solid"
         borderColor="gray.200"
-        boxShadow="sm"
-        position="relative"
+        boxShadow="md"
       >
         <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          position="relative"
-          className="pet-details-container"
-          width={{ base: "100%", md: "40%" }}
-          mb={{ base: "1rem", md: "0" }}
-          minHeight={{ base: "auto", md: "100%" }}
+          width={{ base: "100%", lg: "40%" }}
+          mb={{ base: "2rem", lg: "0" }}
+          pr={{ base: "0", lg: "2rem" }}
+          borderRight={{ base: "none", lg: "1px solid" }}
+          borderColor="gray.200"
         >
-          <Box className="pet-details-header">
+          <VStack spacing="4" align="center">
             <Avatar
               src={selectedPet.profilePhoto || "default-avatar.png"}
               name={selectedPet.animalName || "Unknown"}
-              size="xl"
-              mb="2"
+              size="2xl"
             />
-            <Text className="pet-info" fontSize="xl" fontWeight="bold" mb="4">
+            <Heading as="h2" size="lg" textAlign="center">
               {selectedPet.animalName
                 ? `${selectedPet.animalName}'s Medical Card`
                 : "Medical Card"}
-            </Text>
-            <Box width="100%" mt="2">
+            </Heading>
+            <Box width="100%">
               <Text fontSize="lg" fontWeight="semibold" mb="2">
                 Owner Details:
               </Text>
-              <List spacing={2}>
-                <ListItem>
-                  <Text fontWeight="bold">Owner:</Text>{" "}
-                  {userDetails.name || "Unknown"}
-                </ListItem>
-              </List>
-              <Divider my="4" />
+              <Text>{userDetails.name || "Unknown"}</Text>
+            </Box>
+            <Divider />
+            <Box width="100%" maxWidth="200px" margin="0 auto">
               <Text fontSize="lg" fontWeight="semibold" mb="2">
                 Animal Details:
               </Text>
-              <List spacing={2}>
-                <ListItem>
-                  <Text fontWeight="bold">Species:</Text>{" "}
-                  {selectedPet.animalType || "Unknown"}
-                </ListItem>
-                <ListItem>
-                  <Text fontWeight="bold">Breed:</Text>{" "}
-                  {selectedPet.animalBreed || "Unknown"}
-                </ListItem>
-                <ListItem>
-                  <Text fontWeight="bold">Gender:</Text>{" "}
+              <SimpleGrid columns={2} spacing={3} templateColumns="auto auto">
+                <Text fontWeight="bold">Species:</Text>
+                <Text>{selectedPet.animalType || "Unknown"}</Text>
+                <Text fontWeight="bold">Breed:</Text>
+                <Text>{selectedPet.animalBreed || "Unknown"}</Text>
+                <Text fontWeight="bold">Gender:</Text>
+                <Text>
                   {selectedPet.animalSex
                     ? selectedPet.animalSex.charAt(0).toUpperCase() +
                       selectedPet.animalSex.slice(1)
                     : "Unknown"}
-                </ListItem>
-                <ListItem>
-                  <Text fontWeight="bold">Age:</Text>{" "}
+                </Text>
+                <Text fontWeight="bold">Age:</Text>
+                <Text>
                   {selectedPet.animalAge
                     ? `${selectedPet.animalAge} years`
                     : "Unknown"}
-                </ListItem>
-              </List>
+                </Text>
+              </SimpleGrid>
             </Box>
-          </Box>
+          </VStack>
         </Box>
-        <Divider
-          orientation="vertical"
-          display={{ base: "none", md: "block" }}
-        />
         <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          position="relative"
-          justifyContent="center"
-          width={{ base: "100%", md: "60%" }}
+          width={{ base: "100%", lg: "60%" }}
+          pl={{ base: "0", lg: "2rem" }}
+          mt={{ base: "2rem", lg: "0" }}
         >
-          <VStack align="center" spacing={4}>
+          <VStack spacing="6" align="center">
             {/* Vaccines Section */}
             <HStack align="center" spacing={2}>
               <Text fontSize="lg" fontWeight="semibold">
@@ -523,7 +506,7 @@ const PetDetailsPage = () => {
           </VStack>
           <Divider my="4" />
           {/* Dewormings Section */}
-          <VStack align="center" spacing={4}>
+          <VStack spacing="6" align="center">
             <HStack spacing={2} alignItems="center">
               <Text fontSize="lg" fontWeight="semibold">
                 Dewormings
@@ -588,7 +571,7 @@ const PetDetailsPage = () => {
 
           {/* Observations Section */}
           <Divider my="4" />
-          <VStack align="center" spacing={4}>
+          <VStack spacing="6" align="center">
             <HStack spacing={2} alignItems="center">
               <Text fontSize="lg" fontWeight="semibold">
                 Observations

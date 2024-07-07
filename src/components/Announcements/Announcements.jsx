@@ -15,9 +15,17 @@ import {
   Button,
   MenuList,
   Checkbox,
+  SimpleGrid,
+  InputRightElement,
+  InputGroup,
+  HStack,
+  Heading,
+  Flex,
+  VStack,
+  MenuItemOption,
 } from "@chakra-ui/react";
 import { BiSortUp, BiSortDown, BiFilter } from "react-icons/bi";
-import { AddIcon, CloseIcon } from "@chakra-ui/icons";
+import { AddIcon, CloseIcon, SearchIcon } from "@chakra-ui/icons";
 import { useLoading } from "../context/LoadingContext.jsx";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
@@ -249,70 +257,33 @@ const AnnouncementList = () => {
   return (
     <>
       {isLoading && <LoadingSpinner />}
-      <Container
-        display="flex"
-        flexDirection="column"
-        minWidth={{ base: "90vw", md: "80vw" }}
-        overflow="hidden"
-        p="2rem"
-        mt="1rem"
-        borderRadius="12px"
-        border="1px solid"
-        borderColor="gray.200"
-        boxShadow="sm"
-        position="relative"
-      >
-        <Box
-          display="flex"
-          flexDirection={{ base: "column", md: "row" }}
-          justifyContent="space-between"
-          alignItems="center"
-          mb={6}
-        >
-          <Box
-            as="h1"
-            fontSize="3xl"
-            fontWeight="extrabold"
-            position="sticky"
-            top={0}
-            zIndex={1}
-            py={4}
+      <Container maxW="container.xl" px={4} py={8}>
+        <VStack spacing={8} align="stretch">
+          <Flex
+            direction={{ base: "column", md: "row" }}
+            justify="space-between"
+            align="center"
+            wrap="wrap"
           >
-            Announcements
-          </Box>
-          <Box
-            display="flex"
-            flexDirection={{ base: "column", sm: "row" }}
-            alignItems="center"
-            gap={4}
-          >
-            <LostPetPhotoUpload onMatchesFound={handleMatchesFound} />
-
-            <Box display="flex" alignItems="center" gap={4}>
+            <Heading as="h1" size="2xl" mb={{ base: 4, md: 0 }}>
+              Announcements
+            </Heading>
+            <HStack
+              spacing={4}
+              wrap="wrap"
+              justify={{ base: "center", md: "flex-end" }}
+            >
+              <LostPetPhotoUpload onMatchesFound={handleMatchesFound} />
               <Menu closeOnSelect={false}>
                 <MenuButton
-                  as={IconButton}
-                  icon={<BiFilter />}
+                  as={Button}
+                  rightIcon={<BiFilter />}
                   colorScheme="blue"
-                />
+                  variant="outline"
+                >
+                  Filter
+                </MenuButton>
                 <MenuList>
-                  <MenuItem
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const newValue =
-                        !Object.values(selectedFilters).every(Boolean);
-                      handleFilterChange({
-                        target: { id: "selectAll", checked: newValue },
-                      });
-                    }}
-                  >
-                    <Checkbox
-                      id="selectAll"
-                      isChecked={Object.values(selectedFilters).every(Boolean)}
-                    >
-                      Select All
-                    </Checkbox>
-                  </MenuItem>
                   <MenuItem
                     onClick={(e) => {
                       e.preventDefault();
@@ -321,7 +292,10 @@ const AnnouncementList = () => {
                       });
                     }}
                   >
-                    <Checkbox id="lost" isChecked={selectedFilters.lost}>
+                    <Checkbox
+                      isChecked={selectedFilters.lost}
+                      onChange={() => {}} // Empty onChange to avoid double-firing
+                    >
                       Lost
                     </Checkbox>
                   </MenuItem>
@@ -336,7 +310,10 @@ const AnnouncementList = () => {
                       });
                     }}
                   >
-                    <Checkbox id="found" isChecked={selectedFilters.found}>
+                    <Checkbox
+                      isChecked={selectedFilters.found}
+                      onChange={() => {}} // Empty onChange to avoid double-firing
+                    >
                       Found
                     </Checkbox>
                   </MenuItem>
@@ -351,26 +328,38 @@ const AnnouncementList = () => {
                       });
                     }}
                   >
-                    <Checkbox id="adopt" isChecked={selectedFilters.adopt}>
-                      Adopt
+                    <Checkbox
+                      isChecked={selectedFilters.adopt}
+                      onChange={() => {}} // Empty onChange to avoid double-firing
+                    >
+                      For Adoption
                     </Checkbox>
                   </MenuItem>
                 </MenuList>
               </Menu>
-
               <IconButton
                 aria-label="Sort Announcements"
                 icon={isSortedAsc ? <BiSortUp /> : <BiSortDown />}
                 onClick={handleSort}
                 colorScheme="blue"
               />
-              <Input
-                size="md"
-                placeholder="Search Announcements"
-                onChange={handleSearchChange}
-                value={searchQuery}
-                borderColor="blue.500"
-              />
+              <InputGroup size="md" maxW={{ base: "full", md: "300px" }}>
+                <Input
+                  placeholder="Search Announcements"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  borderColor="blue.500"
+                />
+                <InputRightElement>
+                  <IconButton
+                    aria-label="Search"
+                    icon={<SearchIcon />}
+                    size="sm"
+                    colorScheme="blue"
+                    variant="ghost"
+                  />
+                </InputRightElement>
+              </InputGroup>
               <IconButton
                 aria-label="Add Announcement"
                 icon={<AddIcon />}
@@ -391,77 +380,65 @@ const AnnouncementList = () => {
                       adopt: false,
                     });
                   }}
-                  size="md"
-                  px={6}
                 >
                   Clear
                 </Button>
               )}
-            </Box>
+            </HStack>
+          </Flex>
+
+          <Box borderRadius="lg" boxShadow="md" bg="white" overflow="hidden">
+            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6} p={6}>
+              {announcements.length > 0 ? (
+                announcements.map((announcement) => (
+                  <Box
+                    key={announcement.announcementId}
+                    borderWidth="1px"
+                    borderRadius="lg"
+                    overflow="hidden"
+                    boxShadow="sm"
+                    transition="all 0.3s"
+                    _hover={{
+                      boxShadow: "lg",
+                      transform: "translateY(-4px)",
+                    }}
+                  >
+                    <Announcement
+                      title={announcement.announcementTitle}
+                      content={announcement.announcementDescription}
+                      date={announcement.announcementDate}
+                      username={announcement.userName}
+                      currentUserId={userDetails.id}
+                      announcementUserId={announcement.createdBy}
+                      announcementId={announcement.announcementId}
+                      imageUrl={announcement.imageUrl}
+                      userImage={announcement.userImage}
+                      animalType={announcement.animalType}
+                      animalBreed={announcement.animalBreed}
+                      animalGender={announcement.animalGender}
+                      location={announcement.location}
+                      isHomePage={false}
+                      onEdit={handleEditAnnouncement}
+                      onDelete={() =>
+                        handleDeleteAnnouncement(announcement.announcementId)
+                      }
+                    />
+                  </Box>
+                ))
+              ) : (
+                <Box textAlign="center" py={10} color="gray.500">
+                  No announcements found.
+                </Box>
+              )}
+            </SimpleGrid>
           </Box>
-        </Box>
-        <Box
-          overflowY="auto"
-          maxH="80vh"
-          p={4}
-          borderRadius="md"
-          boxShadow="md"
-          display="flex"
-          flexWrap="wrap"
-          gap={4}
-          justifyContent="flex-start"
-        >
-          {announcements.length > 0 ? (
-            announcements.map((announcement) => (
-              <Box
-                key={announcement.announcementId}
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="md"
-                p={4}
-                boxShadow="sm"
-                _hover={{
-                  boxShadow: "lg",
-                  transform: "scale(1.02)",
-                  cursor: "pointer",
-                }}
-              >
-                <Announcement
-                  title={announcement.announcementTitle}
-                  content={announcement.announcementDescription}
-                  date={new Date(announcement.announcementDate).toLocaleString(
-                    "en-UK",
-                  )}
-                  username={announcement.userName}
-                  currentUserId={userDetails.id}
-                  announcementUserId={announcement.createdBy}
-                  announcementId={announcement.announcementId}
-                  imageUrl={announcement.imageUrl}
-                  userImage={announcement.userImage}
-                  animalType={announcement.animalType}
-                  animalBreed={announcement.animalBreed}
-                  animalGender={announcement.animalGender}
-                  location={announcement.location}
-                  isHomePage={false}
-                  onEdit={handleEditAnnouncement}
-                  onDelete={() =>
-                    handleDeleteAnnouncement(announcement.announcementId)
-                  }
-                />
-              </Box>
-            ))
-          ) : (
-            <Box textAlign="center" mt={8} color="gray.500">
-              No announcements found.
-            </Box>
-          )}
-        </Box>
-        <AnnouncementModal
-          open={modalOpen}
-          onClose={handleCloseModal}
-          onCreate={handleCreateAnnouncement}
-        />
+        </VStack>
       </Container>
+      <AnnouncementModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        onCreate={handleCreateAnnouncement}
+      />
     </>
   );
 };

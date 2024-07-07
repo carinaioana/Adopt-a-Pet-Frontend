@@ -107,121 +107,142 @@ const Register = () => {
 
   return (
     <>
-      {isLoading && <LoadingSpinner />}{" "}
-      <Flex height="100%">
+      {isLoading && <LoadingSpinner />}
+      <Flex
+        height="100%"
+        justifyContent="center"
+        alignItems="center"
+        px={{ base: "0.5rem", md: "0" }}
+      >
         <Box
-          mt="2rem"
+          mt={{ base: "1rem", md: "2rem" }}
           borderWidth={1}
-          px={8}
-          py={12}
-          rounded="md"
+          px={{ base: 4, sm: 6, md: 8 }}
+          py={{ base: 8, md: 12 }}
+          rounded="2xl"
           shadow="lg"
           bg="white"
-          minW="md"
-          maxW="lg"
+          w={{ base: "2xs", sm: "md", md: "lg" }}
+          maxW="xl"
           bgGradient={bgGradient}
         >
-          <Heading mb={6} textAlign="center">
+          <Heading
+            mb={{ base: 4, md: 6 }}
+            textAlign="center"
+            fontSize={{ base: "xl", md: "2xl" }}
+          >
             Register
           </Heading>
-          <Stack spacing="1rem">
-            <FormControl id="name" isRequired>
-              <FormLabel>Name</FormLabel>
-              <Input
-                type="text"
-                placeholder="Enter your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </FormControl>
-            <FormControl id="email" isRequired>
-              <FormLabel>Email</FormLabel>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </FormControl>
-            <FormControl id="username" isRequired>
-              <FormLabel>Username</FormLabel>
-              <Input
-                type="text"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </FormControl>
-            <PasswordTooltip
-              password={password}
-              confirmPassword={confirmPassword}
-            >
-              <FormControl id="password" isRequired>
-                <FormLabel>Password</FormLabel>
-                <InputGroup>
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <InputRightElement>
-                    <Button
-                      h="1.75rem"
-                      size="sm"
-                      bg="ghost"
-                      onClick={handleClickShowPassword}
-                    >
-                      {showPassword ? <ViewOffIcon /> : <ViewIcon />}
-                    </Button>
-                  </InputRightElement>
-                </InputGroup>
+          <form onSubmit={handleSubmit}>
+            <Stack spacing={{ base: "0.75rem", md: "1rem" }}>
+              <FormControl id="name" isRequired>
+                <FormLabel fontSize={{ base: "sm", md: "md" }}>Name</FormLabel>
+                <Input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  size={{ base: "sm", md: "md" }}
+                />
               </FormControl>
-            </PasswordTooltip>
-            <PasswordTooltip
-              password={password}
-              confirmPassword={confirmPassword}
-            >
-              <FormControl id="confirmPassword" isRequired>
-                <FormLabel>Confirm Password</FormLabel>
-                <InputGroup>
-                  <Input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                  <InputRightElement>
-                    <Button
-                      h="1.75rem"
-                      size="sm"
-                      bg="ghost"
-                      onClick={handleClickShowConfirmPassword}
-                    >
-                      {showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />}
-                    </Button>
-                  </InputRightElement>
-                </InputGroup>
+              <FormControl id="email" isRequired>
+                <FormLabel fontSize={{ base: "sm", md: "md" }}>Email</FormLabel>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  size={{ base: "sm", md: "md" }}
+                />
               </FormControl>
-            </PasswordTooltip>
-            <Button
-              colorScheme="blue"
-              variant="solid"
-              onClick={handleSubmit}
-              isFullWidth
-            >
-              Sign Up
-            </Button>
-            <Text align="center">
+              <FormControl id="username" isRequired>
+                <FormLabel fontSize={{ base: "sm", md: "md" }}>
+                  Username
+                </FormLabel>
+                <Input
+                  type="text"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  size={{ base: "sm", md: "md" }}
+                />
+              </FormControl>
+              <PasswordTooltip
+                password={password}
+                confirmPassword={confirmPassword}
+              >
+                <FormControl id="password" isRequired>
+                  <FormLabel fontSize={{ base: "sm", md: "md" }}>
+                    Password
+                  </FormLabel>
+                  <InputGroup size={{ base: "sm", md: "md" }}>
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <InputRightElement>
+                      <Button
+                        bg="ghost"
+                        h="1.75rem"
+                        size="sm"
+                        onClick={handleClickShowPassword}
+                      >
+                        {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                      </Button>
+                    </InputRightElement>
+                  </InputGroup>
+                </FormControl>
+              </PasswordTooltip>
+              <PasswordTooltip
+                password={password}
+                confirmPassword={confirmPassword}
+              >
+                <FormControl id="confirmPassword" isRequired>
+                  <FormLabel fontSize={{ base: "sm", md: "md" }}>
+                    Confirm Password
+                  </FormLabel>
+                  <InputGroup size={{ base: "sm", md: "md" }}>
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                    <InputRightElement>
+                      <Button
+                        bg="ghost"
+                        h="1.75rem"
+                        size="sm"
+                        onClick={handleClickShowConfirmPassword}
+                      >
+                        {showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />}
+                      </Button>
+                    </InputRightElement>
+                  </InputGroup>
+                </FormControl>
+              </PasswordTooltip>
               <Button
                 colorScheme="blue"
-                variant="outline"
-                onClick={() => navigate("/login")}
+                variant="solid"
+                onClick={handleSubmit}
+                size={{ base: "sm", md: "md" }}
               >
-                Already have an account? Log in
+                Sign Up
               </Button>
-            </Text>
-          </Stack>
+              <Text align="center">
+                <Button
+                  colorScheme="blue"
+                  variant="outline"
+                  onClick={() => navigate("/login")}
+                  size={{ base: "sm", md: "md" }}
+                >
+                  Already have an account? Log in
+                </Button>
+              </Text>
+            </Stack>
+          </form>
         </Box>
         <ToastContainer />
       </Flex>

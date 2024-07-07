@@ -24,12 +24,20 @@ import {
   ModalHeader,
   ModalOverlay,
   Textarea,
+  Flex,
+  Box,
+  HStack,
+  VStack,
+  SimpleGrid,
+  Stack,
 } from "@chakra-ui/react";
-import { EditIcon } from "@chakra-ui/icons";
+import { EditIcon, Icon } from "@chakra-ui/icons";
 import axios from "axios";
 import { useLoading } from "../context/LoadingContext.jsx";
 import { useNotification } from "../context/NotificationContext.jsx";
 import LoadingSpinner from "../LoadingSpinner.jsx";
+import { FaTrash } from "react-icons/fa";
+import { MdCake, MdEmail, MdLocationOn, MdPhone } from "react-icons/md";
 
 const ProfileHeader = ({ user, onUserUpdate }) => {
   const [selectedLocation, setSelectedLocation] = useState(
@@ -196,6 +204,39 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
     try {
       setIsLoading(true);
       const authToken = localStorage.getItem("authToken");
+      const response = await axios.put(
+        "https://localhost:7141/api/v1/Authentication/update-profilePhoto",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      );
+      const updatedUser = {
+        ...user,
+        profilePhoto: response.data.newProfilePhotoUrl,
+      };
+      onUserUpdate(updatedUser);
+      setUser(updatedUser);
+      showSuccess("Profile photo updated successfully");
+    } catch (error) {
+      showError("Failed to update profile photo:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    const formData = new FormData();
+    formData.append("UserId", user.id);
+    formData.append("NewProfilePhotoUrl", ""); // Empty string to indicate deletion
+    formData.append("ImageFile", ""); // No new image file
+
+    try {
+      setIsLoading(true);
+      const authToken = localStorage.getItem("authToken");
       await axios.put(
         "https://localhost:7141/api/v1/Authentication/update-profilePhoto",
         formData,
@@ -206,10 +247,10 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
           },
         },
       );
-      onUserUpdate(user);
-      showSuccess("Profile photo updated successfully");
+      onUserUpdate({ ...user, profilePhoto: "" });
+      showSuccess("Profile photo deleted successfully");
     } catch (error) {
-      showError("Failed to update profile photo:", error);
+      showError("Failed to delete profile photo:", error);
     } finally {
       setIsLoading(false);
     }
@@ -219,83 +260,184 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
   }
   return (
     <>
-      {isLoading && <LoadingSpinner />}{" "}
+      {isLoading && <LoadingSpinner />}
       {user && (
         <Container
           maxW={[
+            "100%",
             "container.sm",
             "container.md",
             "container.lg",
             "container.xl",
           ]}
-          p={4}
+          p={[2, 3, 4]}
           mt={[2, 4, 8]}
           borderRadius="md"
           boxShadow="md"
-          height="90%"
         >
-          <Card variant="outline">
-            <CardBody
-              position="relative"
-              display="flex"
-              justifyContent="center"
-            >
-              <Image
-                src={user?.profilePhoto || ""}
-                alt="profile-photo"
-                boxSize={["150px", "175px", "200px", "225px", "250px"]} // Responsive box size
-                borderRadius="full"
-                position="relative"
-                _hover={{
-                  "& .edit-icon": {
-                    display: "block",
-                  },
-                }}
-                onClick={() => setOpenPhotoModal(true)}
-              />
-              <IconButton
-                className="edit-icon"
-                position="absolute"
-                top="50%"
-                left="50%"
-                transform="translate(-50%, -50%)"
-                display="none"
-                onClick={() => setOpenPhotoModal(true)}
-                aria-label={"Edit Profile"}
+          <Card variant="outline" width="100%">
+            <CardBody>
+              <Stack
+                direction={["column", "row"]}
+                spacing={[4, 4, 6]}
+                align="center"
+                justify="center"
               >
-                <EditIcon color="primary" />
-              </IconButton>
-            </CardBody>
-            <Heading as="h4" size="md" mb={[2, 3, 4]}>
-              {user.fullName || ""}
-            </Heading>
-            <Text fontSize={["md", "lg"]}>@{user.username}</Text>
-            <Card variant="outline" className="profile-section">
-              <CardBody>
-                <Heading as="h5" size="sm" mb={[2, 3, 4]}>
-                  About Me
-                </Heading>
-                <Text fontSize={["sm", "md"]}>{user.description}</Text>
-                <Text fontSize={["sm", "md"]}>E-mail: {user.email}</Text>
-                <Text fontSize={["sm", "md"]}>
-                  Age:{" "}
-                  {new Date(
-                    new Date() - new Date(user.birthDate).getTime(),
-                  ).getUTCFullYear() - 1970}
-                </Text>
-                <Text fontSize={["sm", "md"]}>
-                  From {user.userLocation.selectedLocation}
-                </Text>
-                <Text fontSize={["sm", "md"]}>Phone: {user.phoneNumber}</Text>
-                <Button
-                  colorScheme="blue"
-                  mt={[2, 3, 4]}
-                  onClick={handleToggleModal}
+                <Flex direction="column" align="center">
+                  <Box
+                    width={["150px", "175px", "200px"]}
+                    height={["150px", "175px", "200px"]}
+                    borderRadius="full"
+                    overflow="hidden"
+                    position="relative"
+                    mb={4}
+                  >
+                    <Image
+                      src={user?.profilePhoto || ""}
+                      alt="profile-photo"
+                      objectFit="cover"
+                      width="100%"
+                      height="100%"
+                    />
+                    <IconButton
+                      icon={<EditIcon />}
+                      aria-label="Edit Profile Photo"
+                      onClick={() => setOpenPhotoModal(true)}
+                      position="absolute"
+                      top="15%"
+                      right="15%"
+                      isRound
+                      bg="blackAlpha.600"
+                      color="white"
+                      size="sm"
+                      _hover={{
+                        bg: "blackAlpha.800",
+                      }}
+                      _active={{
+                        bg: "none",
+                      }}
+                      _focus={{
+                        outline: "none",
+                        boxShadow: "none",
+                      }}
+                    />
+                  </Box>
+                  <Box mb="4">
+                    <Heading
+                      as="h4"
+                      size="lg"
+                      textAlign="center"
+                      isTruncated
+                      maxWidth="100%"
+                    >
+                      {user.fullName || ""}
+                    </Heading>
+                    <Text fontSize="xl" isTruncated maxWidth="100%">
+                      @{user.username}
+                    </Text>
+                  </Box>
+                  <Button
+                    colorScheme="blue"
+                    onClick={handleToggleModal}
+                    width="full"
+                  >
+                    Edit Profile
+                  </Button>
+                </Flex>
+                <VStack
+                  align="center"
+                  justify="center"
+                  spacing={3}
+                  width="full"
                 >
-                  Edit details
-                </Button>
-              </CardBody>
-            </Card>
+                  <Heading
+                    as="h4"
+                    size={["md", "lg", "xl"]}
+                    textAlign="center"
+                    isTruncated
+                    maxWidth="100%"
+                    mb={4}
+                  >
+                    My Profile
+                  </Heading>
+                  <Text
+                    fontSize={["sm", "md", "lg"]}
+                    textAlign="center"
+                    noOfLines={2}
+                    maxWidth="100%"
+                  >
+                    {user.description}
+                  </Text>
+                  <VStack
+                    spacing={2}
+                    width="full"
+                    align="center"
+                    justify="center"
+                  >
+                    <HStack width="full" justify="center">
+                      <Icon
+                        as={MdEmail}
+                        flexShrink={0}
+                        fontSize={["sm", "md", "lg"]}
+                      />
+                      <Text
+                        fontSize={["xs", "sm", "md"]}
+                        isTruncated
+                        maxWidth="calc(100% - 24px)"
+                        textAlign="center"
+                      >
+                        {user.email}
+                      </Text>
+                    </HStack>
+                    <HStack width="full" justify="center">
+                      <Icon
+                        as={MdCake}
+                        flexShrink={0}
+                        fontSize={["sm", "md", "lg"]}
+                      />
+                      <Text
+                        fontSize={["xs", "sm", "md"]}
+                        isTruncated
+                        maxWidth="calc(100% - 24px)"
+                        textAlign="center"
+                      >
+                        {calculateAge(user.birthDate)} years old
+                      </Text>
+                    </HStack>
+                    <HStack width="full" justify="center">
+                      <Icon
+                        as={MdLocationOn}
+                        flexShrink={0}
+                        fontSize={["sm", "md", "lg"]}
+                      />
+                      <Text
+                        fontSize={["xs", "sm", "md"]}
+                        isTruncated
+                        maxWidth="calc(100% - 24px)"
+                        textAlign="center"
+                      >
+                        {user.userLocation.selectedLocation}
+                      </Text>
+                    </HStack>
+                    <HStack width="full" justify="center">
+                      <Icon
+                        as={MdPhone}
+                        flexShrink={0}
+                        fontSize={["sm", "md", "lg"]}
+                      />
+                      <Text
+                        fontSize={["xs", "sm", "md"]}
+                        isTruncated
+                        maxWidth="calc(100% - 24px)"
+                        textAlign="center"
+                      >
+                        {user.phoneNumber}
+                      </Text>
+                    </HStack>
+                  </VStack>
+                </VStack>
+              </Stack>
+            </CardBody>
           </Card>
           <Modal isOpen={openModal} onClose={handleToggleModal}>
             <ModalOverlay />
@@ -346,21 +488,21 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
                     }}
                     styles={{
                       container: (provided) => ({
-                        ...provided.container,
+                        ...provided,
                         border: "1px solid #ccc",
                         borderRadius: "5px",
                         padding: "10px",
                         boxShadow: "0px 0px 10px 0px rgba(0, 0, 0, 0.1)",
                       }),
                       input: (provided) => ({
-                        ...provided.input,
+                        ...provided,
                         padding: "10px",
                         fontSize: "16px",
                         borderRadius: "5px",
                         border: "1px solid #ccc",
                       }),
                       option: (provided, state) => ({
-                        ...provided.option,
+                        ...provided,
                         color: "black",
                         fontSize: "16px",
                         padding: "10px",
@@ -434,28 +576,31 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
           >
             <ModalOverlay />
             <ModalContent>
-              <ModalHeader>Profile Photo</ModalHeader>
+              <ModalHeader>Change Profile Photo</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <Image
-                  src={user.profilePhoto}
-                  alt="profile-photo"
-                  boxSize="100%"
-                />
-                <Input
-                  type="file"
-                  accept="image/*"
-                  display="none"
-                  id="file-input"
-                  onChange={handleChangePhoto}
-                />
+                <FormControl>
+                  <FormLabel>Upload new photo</FormLabel>
+                  <Input type="file" onChange={handleChangePhoto} />
+                </FormControl>
               </ModalBody>
-              <ModalFooter display="flex" justifyContent="center">
+              <ModalFooter>
                 <Button
                   colorScheme="blue"
-                  onClick={() => document.getElementById("file-input").click()}
+                  mr={3}
+                  onClick={() => setOpenPhotoModal(false)}
                 >
-                  Change Photo
+                  Close
+                </Button>
+                <IconButton
+                  colorScheme="red"
+                  aria-label="Delete photo"
+                  icon={<FaTrash />}
+                  onClick={handleDeletePhoto}
+                  mr={3}
+                />
+                <Button colorScheme="green" onClick={handleChangePhoto}>
+                  Save New Photo
                 </Button>
               </ModalFooter>
             </ModalContent>
@@ -465,6 +610,17 @@ const ProfileHeader = ({ user, onUserUpdate }) => {
     </>
   );
 };
+
+function calculateAge(birthDate) {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
 
 ProfileHeader.propTypes = {
   user: PropTypes.shape({

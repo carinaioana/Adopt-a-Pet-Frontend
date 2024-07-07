@@ -28,7 +28,10 @@ import {
   TagCloseButton,
   TagLabel,
   Text,
+  Textarea,
   VStack,
+  Wrap,
+  WrapItem,
   useColorModeValue,
 } from "@chakra-ui/react";
 import ChakraCarousel from "../ChakraCarousel.jsx";
@@ -81,7 +84,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
       setIsLoading(true);
       const response = await axios.put(
         `https://localhost:7141/api/v1/Announc/${announcementId}`,
-        formData, // Directly use FormData object received from the modal
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -136,50 +139,49 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
     }
   }, [user.petProfiles]);
 
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      const token = localStorage.getItem("authToken"); // Replace 'yourTokenKey' with the actual key
-      try {
-        setIsLoading(true);
-        const response = await axios.get(
-          "https://localhost:7141/api/v1/Announc/my-announcements",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+  const fetchAnnouncements = async () => {
+    const token = localStorage.getItem("authToken");
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        "https://localhost:7141/api/v1/Announc/my-announcements",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        },
+      );
 
-        const announcementsWithUser = await Promise.all(
-          response.data.announcements.map(async (announcement) => {
-            const userResponse = await axios.get(
-              `https://localhost:7141/api/v1/Authentication/userinfo/${announcement.createdBy}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
+      const announcementsWithUser = await Promise.all(
+        response.data.announcements.map(async (announcement) => {
+          const userResponse = await axios.get(
+            `https://localhost:7141/api/v1/Authentication/userinfo/${announcement.createdBy}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
               },
-            );
-            return {
-              ...announcement,
-              userName: userResponse.data.name,
-              userImage: userResponse.data.profilePhoto,
-            };
-          }),
-        );
-        setAnnouncements(announcementsWithUser);
-      } catch (error) {
-        console.error("Error fetching announcements:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+            },
+          );
+          return {
+            ...announcement,
+            userName: userResponse.data.name,
+            userImage: userResponse.data.profilePhoto,
+          };
+        }),
+      );
+      setAnnouncements(announcementsWithUser);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAnnouncements();
   }, []);
 
   useEffect(() => {
-    // Fetch current user's details
     const fetchCurrentUser = async () => {
       const token = localStorage.getItem("authToken");
       try {
@@ -331,8 +333,20 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
   return (
     <>
       {" "}
-      {isLoading && <LoadingSpinner />}{" "}
-      <Container maxW="6xl" p={4} mt={8} borderRadius="md" boxShadow="md">
+      {isLoading && <LoadingSpinner />}
+      <Container
+        maxW={[
+          "100%",
+          "container.sm",
+          "container.md",
+          "container.lg",
+          "container.xl",
+        ]}
+        p={4}
+        mt={8}
+        borderRadius="md"
+        boxShadow="md"
+      >
         <VStack spacing={8} align="stretch">
           <Box
             borderWidth="1px"
@@ -392,7 +406,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
               />
             </Stack>
 
-            <Modal isOpen={openDialog} onClose={handleCloseDialog} size="md">
+            <Modal isOpen={openDialog} onClose={handleCloseDialog} size="lg">
               <ModalOverlay />
               <ModalContent>
                 <ModalHeader>
@@ -401,18 +415,19 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 <ModalCloseButton />
                 <ModalBody>
                   {selectedPet && (
-                    <SimpleGrid columns={2} spacing={6}>
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                       <Box>
                         <Avatar
                           name={selectedPet.name}
                           src={selectedPet.image}
                           size="2xl"
+                          mb={4}
                         />
                       </Box>
                       <Box>
                         {isEditMode ? (
-                          <>
-                            <FormControl mb={4}>
+                          <VStack spacing={4} align="stretch">
+                            <FormControl>
                               <FormLabel>Name</FormLabel>
                               <Input
                                 value={selectedPet.name}
@@ -435,7 +450,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 }}
                               />
                             </FormControl>
-                            <FormControl mb={4}>
+                            <FormControl>
                               <FormLabel>Age</FormLabel>
                               <Input
                                 type="number"
@@ -459,7 +474,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 }}
                               />
                             </FormControl>
-                            <FormControl mb={4}>
+                            <FormControl>
                               <FormLabel>Type</FormLabel>
                               <Select
                                 value={selectedPet.type}
@@ -485,7 +500,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 <option value="Cat">Cat</option>
                               </Select>
                             </FormControl>
-                            <FormControl mb={4}>
+                            <FormControl>
                               <FormLabel>Breed</FormLabel>
                               <Select
                                 value={selectedPet.breed}
@@ -521,7 +536,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                   ))}
                               </Select>
                             </FormControl>
-                            <FormControl mb={4}>
+                            <FormControl>
                               <FormLabel>Gender</FormLabel>
                               <Select
                                 value={selectedPet.sex}
@@ -547,9 +562,9 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 <option value="Female">Female</option>
                               </Select>
                             </FormControl>
-                            <FormControl mb={4}>
+                            <FormControl>
                               <FormLabel>Description</FormLabel>
-                              <Input
+                              <Textarea
                                 value={selectedPet.description}
                                 onChange={(e) => {
                                   const updatedPet = {
@@ -570,7 +585,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                 }}
                               />
                             </FormControl>
-                            <FormControl mb={4}>
+                            <FormControl>
                               <FormLabel>Traits</FormLabel>
                               <Select
                                 placeholder="Select traits"
@@ -600,95 +615,114 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                                   }
                                 }}
                               >
-                                <option value="playful">Playful</option>
-                                <option value="loving">Loving</option>
-                                <option value="gourmand">Gourmand</option>
-                                <option value="energetic">Energetic</option>
-                                <option value="curious">Curious</option>
+                                <option value="Playful">Playful</option>
+                                <option value="Loving">Loving</option>
+                                <option value="Gourmand">Gourmand</option>
+                                <option value="Energetic">Energetic</option>
+                                <option value="Curious">Curious</option>
                               </Select>
-                              <Box mt={2}>
+                              <Wrap mt={2}>
                                 {selectedPet.traits.map((trait, index) => (
-                                  <Tag
-                                    key={index}
-                                    size="md"
-                                    borderRadius="full"
-                                    variant="solid"
-                                    colorScheme={
-                                      [
-                                        "teal",
-                                        "blue",
-                                        "green",
-                                        "red",
-                                        "purple",
-                                        "orange",
-                                      ][Math.floor(Math.random() * 6)]
-                                    }
-                                    mr={2}
-                                    mt={2}
-                                  >
-                                    <TagLabel>{trait}</TagLabel>
-                                    <TagCloseButton
-                                      onClick={() => {
-                                        const updatedPet = {
-                                          ...selectedPet,
-                                          traits: selectedPet.traits.filter(
-                                            (t) => t !== trait,
-                                          ),
-                                        };
-                                        setSelectedPet(updatedPet);
-                                        const updatedPetProfiles =
-                                          user.petProfiles.map((pet) =>
-                                            pet.name === selectedPet.name
-                                              ? updatedPet
-                                              : pet,
-                                          );
-                                        onUserUpdate({
-                                          ...user,
-                                          petProfiles: updatedPetProfiles,
-                                        });
-                                      }}
-                                    />
-                                  </Tag>
+                                  <WrapItem key={index}>
+                                    <Tag
+                                      size="md"
+                                      borderRadius="full"
+                                      variant="solid"
+                                      colorScheme={
+                                        [
+                                          "teal",
+                                          "blue",
+                                          "green",
+                                          "red",
+                                          "purple",
+                                          "orange",
+                                        ][Math.floor(Math.random() * 6)]
+                                      }
+                                    >
+                                      <TagLabel>{trait}</TagLabel>
+                                      <TagCloseButton
+                                        onClick={() => {
+                                          const updatedPet = {
+                                            ...selectedPet,
+                                            traits: selectedPet.traits.filter(
+                                              (t) => t !== trait,
+                                            ),
+                                          };
+                                          setSelectedPet(updatedPet);
+                                          const updatedPetProfiles =
+                                            user.petProfiles.map((pet) =>
+                                              pet.name === selectedPet.name
+                                                ? updatedPet
+                                                : pet,
+                                            );
+                                          onUserUpdate({
+                                            ...user,
+                                            petProfiles: updatedPetProfiles,
+                                          });
+                                        }}
+                                      />
+                                    </Tag>
+                                  </WrapItem>
                                 ))}
-                              </Box>
+                              </Wrap>
                             </FormControl>
-                          </>
+                          </VStack>
                         ) : (
-                          <>
-                            <Text>Name: {selectedPet.name}</Text>
-                            <Text>Age: {selectedPet.age}</Text>
-                            <Text>Type: {selectedPet.type}</Text>
-                            <Text>Breed: {selectedPet.breed}</Text>
-                            <Text>Gender: {selectedPet.sex}</Text>
-                            <Text>Description: {selectedPet.description}</Text>
-                            <Box mt={2}>
-                              <Text>Traits:</Text>
-                              {selectedPet.traits &&
-                              selectedPet.traits.length > 0 ? (
-                                selectedPet.traits.map((trait, index) => (
-                                  <Tag key={index} mr={2} mt={2}>
-                                    {trait}
-                                  </Tag>
-                                ))
-                              ) : (
-                                <Text>No traits added</Text>
-                              )}
+                          <VStack align="start" spacing={3}>
+                            <Text>
+                              <strong>Name:</strong> {selectedPet.name}
+                            </Text>
+                            <Text>
+                              <strong>Age:</strong> {selectedPet.age}
+                            </Text>
+                            <Text>
+                              <strong>Type:</strong> {selectedPet.type}
+                            </Text>
+                            <Text>
+                              <strong>Breed:</strong> {selectedPet.breed}
+                            </Text>
+                            <Text>
+                              <strong>Gender:</strong> {selectedPet.sex}
+                            </Text>
+                            <Text>
+                              <strong>Description:</strong>{" "}
+                              {selectedPet.description}
+                            </Text>
+                            <Box>
+                              <Text>
+                                <strong>Traits:</strong>
+                              </Text>
+                              <Wrap mt={1}>
+                                {selectedPet.traits &&
+                                selectedPet.traits.length > 0 ? (
+                                  selectedPet.traits.map((trait, index) => (
+                                    <WrapItem key={index}>
+                                      <Tag colorScheme="teal">{trait}</Tag>
+                                    </WrapItem>
+                                  ))
+                                ) : (
+                                  <Text fontSize="sm" color="gray.500">
+                                    No traits added
+                                  </Text>
+                                )}
+                              </Wrap>
                             </Box>
-                          </>
+                          </VStack>
                         )}
                       </Box>
                     </SimpleGrid>
                   )}
                 </ModalBody>
                 <ModalFooter>
-                  <Button onClick={handleCloseDialog}>Close</Button>
+                  <Button onClick={handleCloseDialog} mr={3}>
+                    Close
+                  </Button>
                   {isEditMode ? (
                     <Button colorScheme="teal" onClick={handleSaveChanges}>
                       Save
                     </Button>
                   ) : (
                     <Button
-                      ml={2}
                       colorScheme="teal"
                       onClick={() => setIsEditMode(true)}
                     >
@@ -705,6 +739,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 </ModalFooter>
               </ModalContent>
             </Modal>
+
             <Modal
               isOpen={openAddPetDialog}
               onClose={() => setOpenAddPetDialog(false)}
@@ -715,135 +750,136 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                 <ModalHeader>Add New Pet</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                  <FormControl mb={4}>
-                    <FormLabel>Name</FormLabel>
-                    <Input
-                      value={newPet.name}
-                      onChange={(e) =>
-                        setNewPet({ ...newPet, name: e.target.value })
-                      }
-                    />
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Age</FormLabel>
-                    <Input
-                      type="number"
-                      value={newPet.age}
-                      onChange={(e) =>
-                        setNewPet({ ...newPet, age: e.target.value })
-                      }
-                    />
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Type</FormLabel>
-                    <Select
-                      value={newPet.type}
-                      onChange={(e) =>
-                        setNewPet({ ...newPet, type: e.target.value })
-                      }
-                    >
-                      <option value="Dog">Dog</option>
-                      <option value="Cat">Cat</option>
-                    </Select>
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Breed</FormLabel>
-                    <Select
-                      value={newPet.breed}
-                      onChange={(e) =>
-                        setNewPet({ ...newPet, breed: e.target.value })
-                      }
-                    >
-                      {newPet.type === "Dog" &&
-                        dogBreeds.map((breed) => (
-                          <option key={breed.id} value={breed.name}>
-                            {breed.name}
-                          </option>
-                        ))}
-                      {newPet.type === "Cat" &&
-                        catBreeds.map((breed) => (
-                          <option key={breed.id} value={breed.name}>
-                            {breed.name}
-                          </option>
-                        ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Gender</FormLabel>
-                    <Select
-                      value={newPet.sex}
-                      onChange={(e) =>
-                        setNewPet({ ...newPet, sex: e.target.value })
-                      }
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                    </Select>
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Description</FormLabel>
-                    <Input
-                      value={newPet.description}
-                      onChange={(e) =>
-                        setNewPet({ ...newPet, description: e.target.value })
-                      }
-                    />
-                  </FormControl>
-                  <FormControl mb={4}>
-                    <FormLabel>Traits</FormLabel>
-                    <Select
-                      placeholder="Select traits"
-                      onChange={(e) => {
-                        const selectedTrait = e.target.value;
-                        if (!newPet.traits.includes(selectedTrait)) {
-                          setNewPet({
-                            ...newPet,
-                            traits: [...newPet.traits, selectedTrait],
-                          });
+                  <VStack spacing={4}>
+                    <FormControl>
+                      <FormLabel>Name</FormLabel>
+                      <Input
+                        value={newPet.name}
+                        onChange={(e) =>
+                          setNewPet({ ...newPet, name: e.target.value })
                         }
-                      }}
-                    >
-                      <option value="playful">Playful</option>
-                      <option value="loving">Loving</option>
-                      <option value="gourmand">Gourmand</option>
-                      <option value="energetic">Energetic</option>
-                      <option value="curious">Curious</option>
-                    </Select>
-                    <Box mt={2}>
-                      {newPet.traits.map((trait, index) => (
-                        <Tag
-                          key={index}
-                          size="md"
-                          borderRadius="full"
-                          variant="solid"
-                          colorScheme={
-                            [
-                              "teal",
-                              "blue",
-                              "green",
-                              "red",
-                              "purple",
-                              "orange",
-                            ][Math.floor(Math.random() * 6)]
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Age</FormLabel>
+                      <Input
+                        type="number"
+                        value={newPet.age}
+                        onChange={(e) =>
+                          setNewPet({ ...newPet, age: e.target.value })
+                        }
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Type</FormLabel>
+                      <Select
+                        value={newPet.type}
+                        onChange={(e) =>
+                          setNewPet({ ...newPet, type: e.target.value })
+                        }
+                      >
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Breed</FormLabel>
+                      <Select
+                        value={newPet.breed}
+                        onChange={(e) =>
+                          setNewPet({ ...newPet, breed: e.target.value })
+                        }
+                      >
+                        {newPet.type === "Dog" &&
+                          dogBreeds.map((breed) => (
+                            <option key={breed.id} value={breed.name}>
+                              {breed.name}
+                            </option>
+                          ))}
+                        {newPet.type === "Cat" &&
+                          catBreeds.map((breed) => (
+                            <option key={breed.id} value={breed.name}>
+                              {breed.name}
+                            </option>
+                          ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Gender</FormLabel>
+                      <Select
+                        value={newPet.sex}
+                        onChange={(e) =>
+                          setNewPet({ ...newPet, sex: e.target.value })
+                        }
+                      >
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Description</FormLabel>
+                      <Textarea
+                        value={newPet.description}
+                        onChange={(e) =>
+                          setNewPet({ ...newPet, description: e.target.value })
+                        }
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Traits</FormLabel>
+                      <Select
+                        placeholder="Select traits"
+                        onChange={(e) => {
+                          const selectedTrait = e.target.value;
+                          if (!newPet.traits.includes(selectedTrait)) {
+                            setNewPet({
+                              ...newPet,
+                              traits: [...newPet.traits, selectedTrait],
+                            });
                           }
-                          mr={2}
-                          mt={2}
-                        >
-                          <TagLabel>{trait}</TagLabel>
-                          <TagCloseButton
-                            onClick={() => {
-                              setNewPet({
-                                ...newPet,
-                                traits: newPet.traits.filter(
-                                  (t) => t !== trait,
-                                ),
-                              });
-                            }}
-                          />
-                        </Tag>
-                      ))}
-                    </Box>
-                  </FormControl>
+                        }}
+                      >
+                        <option value="Playful">Playful</option>
+                        <option value="Loving">Loving</option>
+                        <option value="Gourmand">Gourmand</option>
+                        <option value="Energetic">Energetic</option>
+                        <option value="Curious">Curious</option>
+                      </Select>
+                      <Wrap mt={2}>
+                        {newPet.traits.map((trait, index) => (
+                          <WrapItem key={index}>
+                            <Tag
+                              size="md"
+                              borderRadius="full"
+                              variant="solid"
+                              colorScheme={
+                                [
+                                  "teal",
+                                  "blue",
+                                  "green",
+                                  "red",
+                                  "purple",
+                                  "orange",
+                                ][Math.floor(Math.random() * 6)]
+                              }
+                            >
+                              <TagLabel>{trait}</TagLabel>
+                              <TagCloseButton
+                                onClick={() => {
+                                  setNewPet({
+                                    ...newPet,
+                                    traits: newPet.traits.filter(
+                                      (t) => t !== trait,
+                                    ),
+                                  });
+                                }}
+                              />
+                            </Tag>
+                          </WrapItem>
+                        ))}
+                      </Wrap>
+                    </FormControl>
+                  </VStack>
                 </ModalBody>
                 <ModalFooter>
                   <Button colorScheme="teal" onClick={handleAddPet}>
@@ -898,7 +934,7 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                   ? announcements.map((announcement) => (
                       <Box
                         key={announcement.announcementId}
-                        maxW="sm"
+                        w="100%"
                         borderWidth="1px"
                         borderRadius="lg"
                         overflow="hidden"
@@ -908,13 +944,14 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                           transform: "translateY(-4px)",
                         }}
                         transition="all 0.3s"
+                        display="flex"
+                        flexDirection="column"
+                        height="100%" // Set a consistent height
                       >
                         <Announcement
                           title={announcement.announcementTitle}
                           content={announcement.announcementDescription}
-                          date={new Date(
-                            announcement.announcementDate,
-                          ).toLocaleString("en-UK")}
+                          date={announcement.announcementDate}
                           username={announcement.userName}
                           currentUserId={user.id}
                           announcementUserId={announcement.createdBy}
@@ -939,6 +976,11 @@ const ProfileDetails = ({ user, onUserUpdate }) => {
                         key="no-announcements"
                         textAlign="center"
                         color="gray.500"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        height="100%" // Set a consistent height
+                        minH="200px"
                       >
                         No announcements found.
                       </Box>,
